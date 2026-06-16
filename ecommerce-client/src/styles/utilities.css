@@ -1,0 +1,13 @@
+.container-custom {
+  max-width: 1280px;
+  margin: auto;
+  padding: 0 1rem;
+}
+
+.card-shadow {
+  box-shadow: var(--shadow-md);
+}
+
+.glass {
+  backdrop-filter: blur(10px);
+}

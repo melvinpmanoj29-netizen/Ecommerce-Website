@@ -1,0 +1,24 @@
+# ASP.NET Configuration & Secrets
+appsettings.json
+appsettings.*.json
+appsettings.Development.json
+secrets.json
+*.secrets
+.env
+.env.local
+.env.*
+*.pem
+
+# Build output
+bin/
+obj/
+
+# React
+node_modules/
+dist/
+
+# Visual Studio
+.vs/
+
+# VS Code
+.vscode/
