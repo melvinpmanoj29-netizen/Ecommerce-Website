@@ -8,7 +8,7 @@ using Ecommerce.API.Validators;
 using Ecommerce.API.Extensions;
 using Ecommerce.API.Authentication;
 using Ecommerce.API.Cloudinary;
-
+using Ecommerce.API.Models;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 

@@ -55,26 +55,45 @@ public class ProductRepository : IProductRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<Product>>
-    SearchAsync(
-        string? search,
+    public async Task<IEnumerable<Product>> SearchProductsAsync(
+        string search,
         int pageNumber,
-        int pageSize)
-    {
-        var query =
-            _context.Products
-                .Include(x => x.Category)
+        int pageSize,
+        int? categoryId,
+        decimal? minPrice,
+        decimal? maxPrice)
+        {
+            var query = _context.Products
+                .Include(p => p.Category)
                 .AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            query = query.Where(x =>
-                x.Name.Contains(search));
-        }
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(p =>
+                    p.Name.Contains(search));
+            }
 
-        return await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-    }
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p =>
+                    p.CategoryId == categoryId.Value);
+            }
+
+            if (minPrice.HasValue)
+            {
+                query = query.Where(p =>
+                    p.Price >= minPrice.Value);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(p =>
+                    p.Price <= maxPrice.Value);
+            }
+
+            return await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
 }

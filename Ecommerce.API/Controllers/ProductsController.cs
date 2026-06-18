@@ -44,15 +44,20 @@ public class ProductsController : ControllerBase
 
     [HttpGet("search")]
     public async Task<IActionResult> Search(
-        string? search,
+        string search = "",
         int pageNumber = 1,
-        int pageSize = 10)
+        int pageSize = 8,
+        int? categoryId = null,
+        decimal? minPrice = null,
+        decimal? maxPrice = null)
     {
-        var products =
-            await _productService.SearchAsync(
-                search,
-                pageNumber,
-                pageSize);
+        var products = await _productService.SearchProductsAsync(
+            search,
+            pageNumber,
+            pageSize,
+            categoryId,
+            minPrice,
+            maxPrice);
 
         return Ok(products);
     }

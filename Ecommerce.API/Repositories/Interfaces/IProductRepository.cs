@@ -16,8 +16,11 @@ public interface IProductRepository
 
     Task SaveChangesAsync();
 
-    Task<IEnumerable<Product>> SearchAsync(
-    string? search,
+   Task<IEnumerable<Product>> SearchProductsAsync(
+    string search,
     int pageNumber,
-    int pageSize);
+    int pageSize,
+    int? categoryId,
+    decimal? minPrice,
+    decimal? maxPrice);
 }

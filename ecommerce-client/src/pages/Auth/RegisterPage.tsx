@@ -4,153 +4,126 @@ import MainLayout from "../../layouts/MainLayout";
 import axiosInstance from "../../api/axios";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
+import Button from "../../components/buttons/Button";
+import { FaUserPlus } from "react-icons/fa";
 
 function RegisterPage() {
-
   const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const [name, setName] =
-    useState("");
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !email || !password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
 
-  const [email, setEmail] =
-    useState("");
+    try {
+      setLoading(true);
+      await axiosInstance.post("/Auth/register", {
+        name,
+        email,
+        password
+      });
 
-  const [password, setPassword] =
-    useState("");
-
-  const handleRegister =
-    async (e: React.FormEvent) => {
-
-      e.preventDefault();
-
-      try {
-
-        await axiosInstance.post(
-          "/Auth/register",
-          {
-            name,
-            email,
-            password
-          }
-        );
-
-        toast.success(
-          "Account created successfully"
-        );
-
-        navigate("/login");
-      }
-      catch {
-
-        toast.error(
-          "Registration failed"
-        );
-
-      }
-    };
+      toast.success("Account created successfully! Please log in.");
+      navigate("/login");
+    } catch {
+      toast.error("Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <MainLayout>
+      <div className="max-w-[420px] mx-auto py-12 px-4">
+        
+        {/* Registration Card */}
+        <div className="bg-theme-card border border-theme rounded-md shadow-md p-6 md:p-8 transition-colors duration-200">
+          
+          {/* Logo Header */}
+          <div className="text-center mb-6">
+            <span className="text-3xl font-black tracking-tight italic font-outfit text-[#2874F0] dark:text-white select-none">
+              ME10X<span className="text-[#FB641B]">LUXE</span>
+            </span>
+            <h2 className="text-lg font-bold text-theme-primary mt-3 font-outfit">
+              Create Your Account
+            </h2>
+            <p className="text-xs text-theme-muted mt-1">Join today to unlock exclusive member privileges</p>
+          </div>
 
-      <div
-        className="
-        container-custom
-        py-10
-        max-w-md
-        mx-auto
-        "
-      >
-        <h1
-          className="
-          text-3xl
-          font-bold
-          mb-6
-          "
-        >
-          Register
-        </h1>
+          <form onSubmit={handleRegister} className="space-y-4">
+            <div>
+              <label htmlFor="reg-name" className="mb-1 font-semibold text-xs text-theme-secondary uppercase">
+                Full Name
+              </label>
+              <input
+                id="reg-name"
+                type="text"
+                placeholder="Enter full name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full bg-theme-body"
+              />
+            </div>
 
-        <form
-          onSubmit={handleRegister}
-          className="space-y-4"
-        >
+            <div>
+              <label htmlFor="reg-email" className="mb-1 font-semibold text-xs text-theme-secondary uppercase">
+                Email Address
+              </label>
+              <input
+                id="reg-email"
+                type="email"
+                placeholder="Enter email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-theme-body"
+              />
+            </div>
 
-          <input
-            type="text"
-            placeholder="Name"
-            value={name}
-            onChange={(e) =>
-              setName(e.target.value)
-            }
-            className="
-            w-full
-            p-3
-            rounded
-            bg-slate-800
-            text-white
-            "
-          />
+            <div>
+              <label htmlFor="reg-password" className="mb-1 font-semibold text-xs text-theme-secondary uppercase">
+                Password
+              </label>
+              <input
+                id="reg-password"
+                type="password"
+                placeholder="Choose password (min 6 chars)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-theme-body"
+              />
+            </div>
 
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) =>
-              setEmail(e.target.value)
-            }
-            className="
-            w-full
-            p-3
-            rounded
-            bg-slate-800
-            text-white
-            "
-          />
+            {/* Register CTA */}
+            <Button
+              type="submit"
+              variant="accent"
+              className="w-full py-3 mt-4 text-sm font-semibold uppercase tracking-wider"
+              disabled={loading}
+            >
+              <FaUserPlus />
+              <span>{loading ? "Registering..." : "Sign Up"}</span>
+            </Button>
+          </form>
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) =>
-              setPassword(
-                e.target.value
-              )
-            }
-            className="
-            w-full
-            p-3
-            rounded
-            bg-slate-800
-            text-white
-            "
-          />
-
-          <button
-            type="submit"
-            className="
-            w-full
-            bg-green-600
-            hover:bg-green-700
-            py-3
-            rounded
-            "
-          >
-            Register
-          </button>
-
-          <p className="text-center mt-4">
+          {/* Bottom link */}
+          <div className="mt-6 pt-5 border-t border-theme/60 text-center text-sm text-theme-secondary">
             Already have an account?{" "}
             <Link
               to="/login"
-              className="text-blue-400"
+              className="text-[#2874F0] dark:text-[#5897ff] font-bold hover:underline"
             >
-              Login
+              Login here
             </Link>
-          </p>
-        </form>
+          </div>
 
+        </div>
       </div>
-
     </MainLayout>
   );
 }

@@ -7,36 +7,56 @@ namespace Ecommerce.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UploadController
-    : ControllerBase
+public class UploadController : ControllerBase
 {
-    private readonly ICloudinaryService
-        _cloudinaryService;
+    private readonly ICloudinaryService _cloudinaryService;
 
     public UploadController(
         ICloudinaryService cloudinaryService)
     {
-        _cloudinaryService =
-            cloudinaryService;
+        _cloudinaryService = cloudinaryService;
     }
 
     [Authorize(Roles = "Admin")]
     [HttpPost]
-    public async Task<IActionResult>
-        Upload(
-            IFormFile file)
+    public async Task<IActionResult> Upload(
+        IFormFile file)
     {
-        var imageUrl =
-            await _cloudinaryService
-                .UploadImageAsync(file);
-
-        return Ok(
-            new ApiResponse<string>
+        try
+        {
+            if (file == null || file.Length == 0)
             {
-                Success = true,
-                Message =
-                    "Upload successful",
-                Data = imageUrl
-            });
+                return BadRequest(
+                    new ApiResponse<string>
+                    {
+                        Success = false,
+                        Message = "No file was provided."
+                    });
+            }
+
+            var imageUrl =
+                await _cloudinaryService
+                    .UploadImageAsync(file);
+
+            return Ok(
+                new ApiResponse<string>
+                {
+                    Success = true,
+                    Message = "Upload successful",
+                    Data = imageUrl
+                });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+
+            return StatusCode(
+                500,
+                new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+        }
     }
 }

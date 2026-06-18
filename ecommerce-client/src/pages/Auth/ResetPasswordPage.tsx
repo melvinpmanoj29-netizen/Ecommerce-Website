@@ -4,6 +4,8 @@ import MainLayout from "../../layouts/MainLayout";
 import { resetPassword } from "../../services/authService";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
+import Button from "../../components/buttons/Button";
+import { FaKey, FaArrowLeft } from "react-icons/fa";
 
 function ResetPasswordPage() {
   const navigate = useNavigate();
@@ -19,27 +21,21 @@ function ResetPasswordPage() {
   if (!token || !email) {
     return (
       <MainLayout>
-        <div
-          className="
-          container-custom
-          py-10
-          max-w-md
-          mx-auto
-          text-center
-          "
-        >
-          <h1 className="text-3xl font-bold mb-4 text-red-400">
-            Invalid Reset Link
-          </h1>
-          <p className="text-gray-400 mb-6">
-            This password reset link is invalid or has expired.
-          </p>
-          <Link
-            to="/forgot-password"
-            className="text-blue-400 hover:text-blue-300"
-          >
-            Request a new reset link →
-          </Link>
+        <div className="max-w-[420px] mx-auto py-12 px-4">
+          <div className="bg-theme-card border border-theme rounded-md shadow-md p-6 text-center transition-colors duration-200">
+            <h1 className="text-xl font-bold mb-3 text-red-500 font-outfit">
+              Invalid Reset Link
+            </h1>
+            <p className="text-sm text-theme-muted mb-6">
+              This password reset link is invalid, broken, or has expired.
+            </p>
+            <Link
+              to="/forgot-password"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2874F0] dark:text-[#5897ff] hover:underline"
+            >
+              <span>Request new link →</span>
+            </Link>
+          </div>
         </div>
       </MainLayout>
     );
@@ -73,89 +69,73 @@ function ResetPasswordPage() {
 
   return (
     <MainLayout>
-      <div
-        className="
-        container-custom
-        py-10
-        max-w-md
-        mx-auto
-        "
-      >
-        <h1
-          className="
-          text-3xl
-          font-bold
-          mb-2
-          "
-        >
-          Reset Password
-        </h1>
+      <div className="max-w-[420px] mx-auto py-12 px-4">
+        
+        {/* Reset Password Card */}
+        <div className="bg-theme-card border border-theme rounded-md shadow-md p-6 md:p-8 transition-colors duration-200">
+          
+          {/* Logo Header */}
+          <div className="text-center mb-6">
+            <span className="text-3xl font-black tracking-tight italic font-outfit text-[#2874F0] dark:text-white select-none">
+              ME10X<span className="text-[#FB641B]">LUXE</span>
+            </span>
+            <h2 className="text-lg font-bold text-theme-primary mt-3 font-outfit">
+              Reset Password
+            </h2>
+            <p className="text-xs text-theme-muted mt-1">Configure your new account password</p>
+          </div>
 
-        <p className="text-gray-400 mb-6">
-          Enter your new password below.
-        </p>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="reset-pass" className="mb-1 font-semibold text-xs text-theme-secondary uppercase">
+                New Password
+              </label>
+              <input
+                id="reset-pass"
+                type="password"
+                placeholder="Minimum 6 characters"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full bg-theme-body"
+              />
+            </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
-          <input
-            type="password"
-            placeholder="New Password"
-            value={newPassword}
-            onChange={(e) =>
-              setNewPassword(e.target.value)
-            }
-            className="
-            w-full
-            p-3
-            rounded
-            bg-slate-800
-            text-white
-            "
-          />
+            <div>
+              <label htmlFor="reset-confirm" className="mb-1 font-semibold text-xs text-theme-secondary uppercase">
+                Confirm New Password
+              </label>
+              <input
+                id="reset-confirm"
+                type="password"
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full bg-theme-body"
+              />
+            </div>
 
-          <input
-            type="password"
-            placeholder="Confirm New Password"
-            value={confirmPassword}
-            onChange={(e) =>
-              setConfirmPassword(e.target.value)
-            }
-            className="
-            w-full
-            p-3
-            rounded
-            bg-slate-800
-            text-white
-            "
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="
-            w-full
-            bg-blue-600
-            hover:bg-blue-700
-            py-3
-            rounded
-            disabled:opacity-50
-            disabled:cursor-not-allowed
-            "
-          >
-            {loading ? "Resetting..." : "Reset Password"}
-          </button>
-
-          <p className="text-center mt-4">
-            <Link
-              to="/login"
-              className="text-blue-400"
+            {/* Reset CTA */}
+            <Button
+              type="submit"
+              variant="accent"
+              className="w-full py-3 mt-4 text-sm font-semibold uppercase tracking-wider"
+              disabled={loading}
             >
-              ← Back to Login
-            </Link>
-          </p>
-        </form>
+              <FaKey size={12} />
+              <span>{loading ? "Resetting..." : "Update Password"}</span>
+            </Button>
+
+            <div className="text-center mt-4">
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-1.5 text-xs text-[#2874F0] dark:text-[#5897ff] font-bold hover:underline"
+              >
+                <FaArrowLeft size={10} />
+                <span>Return to Login</span>
+              </Link>
+            </div>
+          </form>
+        </div>
       </div>
     </MainLayout>
   );

@@ -1,1 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
+
+:root {
+  --primary: #2874F0; /* Flipkart Blue */
+  --primary-dark: #1259c7;
+  --accent: #FB641B; /* Flipkart Orange */
+  --accent-dark: #e04f0b;
+  
+  --bg-body: #F1F3F6;
+  --bg-card: #ffffff;
+  --bg-card-hover: #fafafa;
+  --border-color: #e0e0e0;
+  --text-primary: #212121;
+  --text-secondary: #4a4a4a;
+  --text-muted: #878787;
+  --input-bg: #ffffff;
+  --font-inter: 'Inter', sans-serif;
+  --font-outfit: 'Outfit', sans-serif;
+}
+
+html.dark {
+  --bg-body: #0a0f1d;
+  --bg-card: #131b2e;
+  --bg-card-hover: #1b2640;
+  --border-color: #24324f;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  --input-bg: #1e293b;
+}
+
+body {
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  font-family: var(--font-inter);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Theme helper classes */
+.bg-theme-body { background-color: var(--bg-body); }
+.bg-theme-card { background-color: var(--bg-card); }
+.bg-theme-card-hover { background-color: var(--bg-card-hover); }
+.border-theme { border-color: var(--border-color); }
+.text-theme-primary { color: var(--text-primary); }
+.text-theme-secondary { color: var(--text-secondary); }
+.text-theme-muted { color: var(--text-muted); }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-body);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.container-custom {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Base style resets for forms */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  background-color: var(--input-bg) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 4px !important;
+  padding: 10px 14px !important;
+  font-size: 14px !important;
+  transition: all 0.2s ease-in-out !important;
+  outline: none !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(40, 116, 240, 0.15) !important;
+}
+
+/* Input labels */
+label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* Hiding categories scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

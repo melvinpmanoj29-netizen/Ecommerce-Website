@@ -3,356 +3,206 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import { getProducts } from "../../services/productService";
-
 import { getCategories } from "../../services/categoryService";
-
- import { getAllOrders } from "../../services/adminOrderService";
+import { getAllOrders } from "../../services/adminOrderService";
+import { FaBoxes, FaTags, FaShoppingBag, FaUsers, FaArrowRight, FaChartLine } from "react-icons/fa";
 
 function AdminDashboardPage() {
-  const [productCount,
-  setProductCount] =
-  useState(0);
+  const [productCount, setProductCount] = useState(0);
+  const [categoryCount, setCategoryCount] = useState(0);
+  const [orderCount, setOrderCount] = useState(0);
+  const [recentOrders, setRecentOrders] = useState<any[]>([]);
 
-  const [categoryCount,
-    setCategoryCount] =
-    useState(0);
-
-  const [orderCount,
-    setOrderCount] =
-    useState(0);
-    useEffect(() => {
-
-  loadStats();
-
+  useEffect(() => {
+    loadStats();
   }, []);
-  const [recentOrders,setRecentOrders] =  useState<any[]>([]);
 
-  const loadStats =
-  async () => {
-
+  const loadStats = async () => {
     try {
+      const products = await getProducts();
+      const categories = await getCategories();
+      const orders = await getAllOrders();
 
-      const products =
-        await getProducts();
-
-      const categories =
-        await getCategories();
-
-      const orders =
-        await getAllOrders();
-
-      setProductCount(
-        products.length
-      );
-
-      setCategoryCount(
-        categories.length
-      );
-
-      setOrderCount(
-        orders.length
-      );
-
+      setProductCount(products.length);
+      setCategoryCount(categories.length);
+      setOrderCount(orders.length);
       setRecentOrders(
         [...orders]
-          .sort(
-            (a: any, b: any) =>
-              b.id - a.id
-          )
+          .sort((a: any, b: any) => b.id - a.id)
           .slice(0, 5)
       );
-
-    }
-    catch (error) {
-
+    } catch (error) {
       console.error(error);
-
     }
-};  
+  };
 
   return (
     <MainLayout>
-
-      <div
-        className="
-        container-custom
-        py-10
-        "
-      >
-        <h1
-          className="
-          text-4xl
-          font-bold
-          mb-8
-          "
-        >
-          Admin Dashboard
-        </h1>
-
-        <div
-  className="
-  grid
-  grid-cols-1
-  md:grid-cols-3
-  gap-6
-  mb-10
-  "
->
-
-  <div
-    className="
-    bg-slate-800
-    p-6
-    rounded-lg
-    text-center
-    "
-  >
-    <h2
-      className="
-      text-xl
-      mb-2
-      "
-    >
-      Products
-    </h2>
-
-    <p
-      className="
-      text-4xl
-      font-bold
-      text-blue-400
-      "
-    >
-      {productCount}
-    </p>
-  </div>
-
-  <div
-    className="
-    bg-slate-800
-    p-6
-    rounded-lg
-    text-center
-    "
-  >
-    <h2
-      className="
-      text-xl
-      mb-2
-      "
-    >
-      Categories
-    </h2>
-
-    <p
-      className="
-      text-4xl
-      font-bold
-      text-green-400
-      "
-    >
-      {categoryCount}
-    </p>
-  </div>
-
-  <div
-    className="
-    bg-slate-800
-    p-6
-    rounded-lg
-    text-center
-    "
-  >
-    <h2
-      className="
-      text-xl
-      mb-2
-      "
-    >
-      Orders
-    </h2>
-
-    <p
-      className="
-      text-4xl
-      font-bold
-      text-yellow-400
-      "
-    >
-      {orderCount}
-    </p>
-  </div>
-
-      </div>
-        <div
-          className="
-          grid
-          grid-cols-1
-          md:grid-cols-2
-          gap-6
-          w-400
-          "
-          >
-            <div
-                className="
-                bg-slate-800
-                p-6
-                rounded-lg
-                mb-10
-                "
-              >
-
-            <h2
-              className="
-              text-2xl
-              font-bold
-              mb-4
-              "
-            >
-              Recent Orders
-            </h2>
-
-            {
-              recentOrders.length === 0
-                ? (
-                  <p>
-                    No orders yet
-                  </p>
-                )
-                : (
-                  recentOrders.map(
-                    order => (
-
-                      <div
-                        key={order.id}
-                        className="
-                        flex
-                        justify-between
-                        items-center
-                        border-b
-                        border-slate-700
-                        py-3
-                        "
-                      >
-
-                        <div>
-                          Order #{order.id}
-                        </div>
-
-                        <div>
-                          {order.status}
-                        </div>
-
-                        <div>
-                          ₹{order.totalAmount}
-                        </div>
-
-                      </div>
-
-                    ))
-                )
-            }
-
+      <div className="py-6">
+        
+        {/* Title row */}
+        <div className="flex items-center gap-3 mb-8 border-b border-theme pb-4">
+          <div className="w-10 h-10 bg-[#FB641B]/10 rounded-full flex items-center justify-center text-xl text-[#FB641B]">
+            <FaChartLine />
           </div>
-
-          
-             <Link
-                to="/admin/products"
-                className="
-                block
-                bg-slate-800
-                p-4
-                h-50
-                w-110   
-                rounded-lg
-                hover:bg-slate-700
-                hover:scale-105
-                transition
-                duration-200
-                cursor-pointer
-                "
-              >
-                <h2>
-                  Products
-                </h2>
-
-                <p>
-                  Manage products
-                </p>
-            </Link>
-           
-
-              
-                 <Link
-                to="/admin/categories"
-                className="
-                block
-                bg-slate-800
-                p-6
-                rounded-lg
-                hover:bg-slate-700
-                hover:scale-105
-                transition
-                duration-200
-                cursor-pointer
-                "
-              >
-                <h2>
-                  Categories
-                </h2>
-
-                <p>
-                  Manage categories
-                </p>
-            </Link>
-              
-            <Link
-                to="/admin/orders"
-                className="
-                block
-                bg-slate-800
-                p-6
-                h-50
-                w-110
-                rounded-lg
-                hover:bg-slate-700
-                hover:scale-105
-                transition
-                duration-200
-                cursor-pointer
-                "
-              >
-                <h2>
-                  Orders
-                </h2>
-
-                <p>
-                  Manage orders
-                </p>
-            </Link>
-            <Link
-              to="/admin/users"
-              className="
-              block
-              bg-slate-800
-              p-6
-              rounded-lg
-              hover:bg-slate-700
-              "
-              >
-              <h2>
-                Users
-              </h2>
-
-              <p>
-                Manage users
-              </p>
-            </Link>
-
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-theme-primary font-outfit">
+              Admin Control Panel
+            </h1>
+            <p className="text-xs text-theme-muted mt-0.5">Manage stock, categories, orders, and user privileges</p>
+          </div>
         </div>
 
-      </div>
+        {/* Info widgets row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-theme-card border border-theme p-6 rounded-md text-center shadow-sm relative overflow-hidden transition-colors duration-200">
+            <div className="absolute top-3 right-3 text-[#2874F0]/10 text-4xl"><FaBoxes /></div>
+            <h2 className="text-sm font-semibold text-theme-muted uppercase tracking-wider mb-2">
+              Total Products
+            </h2>
+            <p className="text-4xl font-black text-[#2874F0] dark:text-[#5897ff]">
+              {productCount}
+            </p>
+          </div>
 
+          <div className="bg-theme-card border border-theme p-6 rounded-md text-center shadow-sm relative overflow-hidden transition-colors duration-200">
+            <div className="absolute top-3 right-3 text-green-600/10 text-4xl"><FaTags /></div>
+            <h2 className="text-sm font-semibold text-theme-muted uppercase tracking-wider mb-2">
+              Categories
+            </h2>
+            <p className="text-4xl font-black text-green-600">
+              {categoryCount}
+            </p>
+          </div>
+
+          <div className="bg-theme-card border border-theme p-6 rounded-md text-center shadow-sm relative overflow-hidden transition-colors duration-200">
+            <div className="absolute top-3 right-3 text-orange-500/10 text-4xl"><FaShoppingBag /></div>
+            <h2 className="text-sm font-semibold text-theme-muted uppercase tracking-wider mb-2">
+              Total Orders
+            </h2>
+            <p className="text-4xl font-black text-[#FB641B]">
+              {orderCount}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Recent Orders Card */}
+          <div className="bg-theme-card border border-theme rounded-md p-5 shadow-sm lg:col-span-2 transition-colors duration-200">
+            <h2 className="text-base font-bold text-theme-primary mb-4 font-outfit">
+              Recent Transactions
+            </h2>
+
+            <div className="overflow-x-auto">
+              {recentOrders.length === 0 ? (
+                <p className="text-xs text-theme-muted italic py-6 text-center">
+                  No transaction records available.
+                </p>
+              ) : (
+                <table className="w-full text-left border-collapse text-xs md:text-sm text-theme-secondary">
+                  <thead>
+                    <tr className="border-b border-theme/80 font-semibold text-theme-primary">
+                      <th className="py-2.5">Order ID</th>
+                      <th className="py-2.5">Status</th>
+                      <th className="py-2.5 text-right">Total Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-theme/40">
+                    {recentOrders.map((order) => (
+                      <tr key={order.id} className="hover:bg-theme-body/20">
+                        <td className="py-3 font-semibold text-[#2874F0] dark:text-[#5897ff]">#{order.id}</td>
+                        <td className="py-3">
+                          <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase ${
+                            order.status === "Delivered"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-blue-100 text-blue-800"
+                          }`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="py-3 text-right font-bold text-theme-primary">₹{order.totalAmount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Admin Actions menu */}
+          <div className="space-y-4">
+            <h2 className="text-xs font-bold text-theme-muted uppercase tracking-wider">
+              Management Controls
+            </h2>
+
+            <Link
+              to="/admin/products"
+              className="group flex items-center justify-between p-4 bg-theme-card border border-theme rounded-md shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-blue-100 dark:bg-slate-800 text-blue-600 dark:text-[#5897ff] rounded-full flex items-center justify-center text-sm">
+                  <FaBoxes />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-theme-primary">Manage Products</h3>
+                  <p className="text-[11px] text-theme-muted mt-0.5">Add, edit, or remove catalog items</p>
+                </div>
+              </div>
+              <FaArrowRight size={12} className="text-theme-muted group-hover:text-[#2874F0] group-hover:translate-x-1.5 transition-all" />
+            </Link>
+
+            <Link
+              to="/admin/categories"
+              className="group flex items-center justify-between p-4 bg-theme-card border border-theme rounded-md shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-green-100 dark:bg-slate-800 text-green-600 rounded-full flex items-center justify-center text-sm">
+                  <FaTags />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-theme-primary">Manage Categories</h3>
+                  <p className="text-[11px] text-theme-muted mt-0.5">Configure item search tags</p>
+                </div>
+              </div>
+              <FaArrowRight size={12} className="text-theme-muted group-hover:text-[#2874F0] group-hover:translate-x-1.5 transition-all" />
+            </Link>
+
+            <Link
+              to="/admin/orders"
+              className="group flex items-center justify-between p-4 bg-theme-card border border-theme rounded-md shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-orange-100 dark:bg-slate-800 text-[#FB641B] rounded-full flex items-center justify-center text-sm">
+                  <FaShoppingBag />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-theme-primary">Manage Orders</h3>
+                  <p className="text-[11px] text-theme-muted mt-0.5">Approve, ship, or process orders</p>
+                </div>
+              </div>
+              <FaArrowRight size={12} className="text-theme-muted group-hover:text-[#2874F0] group-hover:translate-x-1.5 transition-all" />
+            </Link>
+
+            <Link
+              to="/admin/users"
+              className="group flex items-center justify-between p-4 bg-theme-card border border-theme rounded-md shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-purple-100 dark:bg-slate-800 text-purple-600 rounded-full flex items-center justify-center text-sm">
+                  <FaUsers />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-theme-primary">Manage Users</h3>
+                  <p className="text-[11px] text-theme-muted mt-0.5">Configure administrator accounts</p>
+                </div>
+              </div>
+              <FaArrowRight size={12} className="text-theme-muted group-hover:text-[#2874F0] group-hover:translate-x-1.5 transition-all" />
+            </Link>
+          </div>
+
+        </div>
+      </div>
     </MainLayout>
   );
 }

@@ -3,6 +3,8 @@ import MainLayout from "../../layouts/MainLayout";
 import { forgotPassword } from "../../services/authService";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
+import Button from "../../components/buttons/Button";
+import { FaPaperPlane, FaArrowLeft } from "react-icons/fa";
 
 function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -32,97 +34,78 @@ function ForgotPasswordPage() {
 
   return (
     <MainLayout>
-      <div
-        className="
-        container-custom
-        py-10
-        max-w-md
-        mx-auto
-        "
-      >
-        <h1
-          className="
-          text-3xl
-          font-bold
-          mb-2
-          "
-        >
-          Forgot Password
-        </h1>
-
-        <p className="text-gray-400 mb-6">
-          Enter your email address and we'll send you a link to reset your password.
-        </p>
-
-        {sent ? (
-          <div className="bg-green-900/30 border border-green-600 rounded p-4 text-center">
-            <p className="text-green-400 text-lg font-semibold mb-2">
-              ✅ Reset Link Sent!
-            </p>
-            <p className="text-gray-300">
-              We've sent a password reset link to <strong>{email}</strong>. 
-              Please check your inbox (and spam folder).
-            </p>
-            <Link
-              to="/login"
-              className="
-              inline-block
-              mt-4
-              text-blue-400
-              hover:text-blue-300
-              "
-            >
-              ← Back to Login
-            </Link>
+      <div className="max-w-[420px] mx-auto py-12 px-4">
+        
+        {/* Forgot Password Card */}
+        <div className="bg-theme-card border border-theme rounded-md shadow-md p-6 md:p-8 transition-colors duration-200">
+          
+          {/* Logo Header */}
+          <div className="text-center mb-6">
+            <span className="text-3xl font-black tracking-tight italic font-outfit text-[#2874F0] dark:text-white select-none">
+              ME10X<span className="text-[#FB641B]">LUXE</span>
+            </span>
+            <h2 className="text-lg font-bold text-theme-primary mt-3 font-outfit">
+              Forgot Password
+            </h2>
+            <p className="text-xs text-theme-muted mt-1">Provide email to retrieve your password</p>
           </div>
-        ) : (
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4"
-          >
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) =>
-                setEmail(e.target.value)
-              }
-              className="
-              w-full
-              p-3
-              rounded
-              bg-slate-800
-              text-white
-              "
-            />
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="
-              w-full
-              bg-blue-600
-              hover:bg-blue-700
-              py-3
-              rounded
-              disabled:opacity-50
-              disabled:cursor-not-allowed
-              "
-            >
-              {loading ? "Sending..." : "Send Reset Link"}
-            </button>
-
-            <p className="text-center mt-4">
-              Remember your password?{" "}
+          {sent ? (
+            <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 text-center p-4 rounded-sm">
+              <p className="text-green-700 dark:text-green-400 text-base font-bold mb-2">
+                ✅ Verification Email Sent!
+              </p>
+              <p className="text-xs text-theme-secondary leading-relaxed">
+                We've sent a password reset link to <strong>{email}</strong>. Please check your inbox.
+              </p>
               <Link
                 to="/login"
-                className="text-blue-400"
+                className="inline-flex items-center gap-1.5 mt-4 text-xs font-bold text-[#2874F0] dark:text-[#5897ff] hover:underline"
               >
-                Login
+                <FaArrowLeft size={10} />
+                <span>Return to Login</span>
               </Link>
-            </p>
-          </form>
-        )}
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="forgot-email" className="mb-1 font-semibold text-xs text-theme-secondary uppercase">
+                  Email Address
+                </label>
+                <input
+                  id="forgot-email"
+                  type="email"
+                  placeholder="Enter registered email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-theme-body"
+                />
+              </div>
+
+              {/* Submit CTA */}
+              <Button
+                type="submit"
+                variant="accent"
+                className="w-full py-3 mt-4 text-sm font-semibold uppercase tracking-wider"
+                disabled={loading}
+              >
+                <FaPaperPlane size={12} />
+                <span>{loading ? "Sending..." : "Send Reset Link"}</span>
+              </Button>
+
+              <div className="text-center mt-4">
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-1.5 text-xs text-[#2874F0] dark:text-[#5897ff] font-bold hover:underline"
+                >
+                  <FaArrowLeft size={10} />
+                  <span>Back to Login</span>
+                </Link>
+              </div>
+            </form>
+          )}
+
+        </div>
       </div>
     </MainLayout>
   );

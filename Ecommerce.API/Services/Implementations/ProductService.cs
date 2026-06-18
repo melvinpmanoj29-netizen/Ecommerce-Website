@@ -98,22 +98,32 @@ public class ProductService : IProductService
             .SaveChangesAsync();
     }
 
-    public async Task<
-    IEnumerable<ProductResponseDto>>
-    SearchAsync(
-        string? search,
+    public async Task<IEnumerable<ProductResponseDto>> SearchProductsAsync(
+        string search,
         int pageNumber,
-        int pageSize)
+        int pageSize,
+        int? categoryId,
+        decimal? minPrice,
+        decimal? maxPrice)
     {
-        var products =
-            await _productRepository
-                .SearchAsync(
-                    search,
-                    pageNumber,
-                    pageSize);  
+        var products = await _productRepository.SearchProductsAsync(
+            search,
+            pageNumber,
+            pageSize,
+            categoryId,
+            minPrice,
+            maxPrice);
 
-        return _mapper.Map<
-            IEnumerable<ProductResponseDto>>
-            (products);
+        return products.Select(product => new ProductResponseDto
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            Price = product.Price,
+            Stock = product.Stock,
+            ImageUrl = product.ImageUrl,
+            CategoryId = product.CategoryId,
+            CategoryName = product.Category?.Name ?? string.Empty
+        });
     }
 }

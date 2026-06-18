@@ -17,14 +17,13 @@ public interface IProductService
     int id,
     UpdateProductRequestDto dto);
 
-Task DeleteAsync(int id);
+    Task DeleteAsync(int id);
 
-Task<IEnumerable<ProductResponseDto>>
-    SearchAsync(
-        string? search,
+    Task<IEnumerable<ProductResponseDto>> SearchProductsAsync(
+        string search,
         int pageNumber,
-        int pageSize);
-
-
-     
+        int pageSize,
+        int? categoryId,
+        decimal? minPrice,
+        decimal? maxPrice);
 }
