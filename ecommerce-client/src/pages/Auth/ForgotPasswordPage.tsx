@@ -41,7 +41,7 @@ function ForgotPasswordPage() {
           
           {/* Logo Header */}
           <div className="text-center mb-6">
-            <span className="text-3xl font-black tracking-tight italic font-outfit text-[#2874F0] dark:text-white select-none">
+            <span className="text-3xl font-black tracking-tight italic font-outfit text-[#2874F0] dark:text-[#FFE500] select-none">
               ME10X<span className="text-[#FB641B]">LUXE</span>
             </span>
             <h2 className="text-lg font-bold text-theme-primary mt-3 font-outfit">

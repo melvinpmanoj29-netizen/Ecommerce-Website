@@ -6,6 +6,9 @@ import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import Button from "../../components/buttons/Button";
 import { FaSignInAlt } from "react-icons/fa";
+import GoogleButton from "../../components/auth/GoogleButton";
+
+import { googleLogin } from "../../services/authService";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -19,7 +22,7 @@ function LoginPage() {
       toast.error("Please fill in all fields");
       return;
     }
-
+   
     try {
       setLoading(false);
       const response = await axiosInstance.post("/Auth/login", {
@@ -36,6 +39,36 @@ function LoginPage() {
       toast.error("Invalid credentials");
     }
   };
+   const handleGoogleLogin = async (
+  idToken: string
+) => {
+  try {
+    const response =
+      await googleLogin(idToken);
+
+    localStorage.setItem(
+      "token",
+      response.data.token
+    );
+
+    localStorage.setItem(
+      "user",
+      JSON.stringify(response.data)
+    );
+
+    toast.success("Login successful");
+
+    navigate("/");
+  } catch (error: any) {
+    toast.error(
+      error?.response?.data?.message ??
+      "No account found. Please sign up first."
+    );
+
+    navigate("/register");
+  }
+};
+
 
   return (
     <MainLayout>
@@ -106,6 +139,21 @@ function LoginPage() {
               <FaSignInAlt />
               <span>{loading ? "Signing In..." : "Login"}</span>
             </Button>
+            <div className="my-4 flex items-center">
+              <div className="flex-1 border-t border-theme"></div>
+
+              <span className="px-3 text-xs text-theme-muted">
+                OR
+              </span>
+
+              <div className="flex-1 border-t border-theme"></div>
+            </div>
+
+            <div className="flex justify-center">
+              <GoogleButton
+                onSuccess={handleGoogleLogin}
+              />
+            </div>
           </form>
 
           {/* Bottom links */}

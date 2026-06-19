@@ -28,29 +28,46 @@ function Navbar() {
   }, [isDark]);
 
   // Load cart count dynamically to show on the badge
+  // Load cart count dynamically to show on the badge
   useEffect(() => {
-    if (token) {
-      const loadCartCount = async () => {
-        try {
-          const items = await getCart();
-          const count = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
-          setCartCount(count);
-        } catch (error) {
+    const loadCartCount = async () => {
+      if (!token) {
+        setCartCount(0);
+        return;
+      }
+
+      try {
+        const items = await getCart();
+
+        const count = items.reduce(
+          (sum: number, item: any) => sum + item.quantity,
+          0
+        );
+
+        setCartCount(count);
+      } catch (error: any) {
+        if (error.response?.status === 401) {
+          setCartCount(0);
+        } else {
           console.error("Failed to load cart count", error);
         }
-      };
-      loadCartCount();
+      }
+    };
 
-      // Listen for cart changes (custom event)
-      const handleCartUpdate = () => {
-        loadCartCount();
-      };
-      window.addEventListener("cartUpdated", handleCartUpdate);
-      return () => window.removeEventListener("cartUpdated", handleCartUpdate);
-    }
+    loadCartCount();
+
+    const handleCartUpdate = () => {
+      loadCartCount();
+    };
+
+    window.addEventListener("cartUpdated", handleCartUpdate);
+
+    return () => {
+      window.removeEventListener("cartUpdated", handleCartUpdate);
+    };
   }, [token]);
 
-  const handleLogout = () => {
+  const handleLogout = () => {  
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login");

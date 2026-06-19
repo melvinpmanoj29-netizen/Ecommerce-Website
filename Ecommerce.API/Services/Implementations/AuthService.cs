@@ -4,6 +4,9 @@ using Ecommerce.API.DTOs.Responses;
 using Ecommerce.API.Models;
 using Ecommerce.API.Repositories.Interfaces;
 using Ecommerce.API.Services.Interfaces;
+using Google.Apis.Auth;
+using Microsoft.Extensions.Options;
+using Ecommerce.API.Authentication;
 
 namespace Ecommerce.API.Services.Implementations;
 
@@ -13,19 +16,24 @@ public class AuthService : IAuthService
 
     private readonly IJwtService _jwtService;
     private readonly IEmailService _emailService;
+    // Googles auth part
+
+    private readonly GoogleAuthSettings _googleSettings;
 
     public AuthService(
         IUserRepository userRepository,
         IJwtService jwtService,
-        IEmailService emailService)
+        IEmailService emailService,
+        IOptions<GoogleAuthSettings> googleOptions)
     {
         _userRepository = userRepository;
         _jwtService = jwtService;
         _emailService = emailService;
+
+        _googleSettings = googleOptions.Value;
     }
 
-    public async Task RegisterAsync(
-        RegisterRequestDto dto)
+    public async Task RegisterAsync(RegisterRequestDto dto)
     {
         var existingUser =
             await _userRepository
@@ -146,4 +154,91 @@ public class AuthService : IAuthService
 
         await _userRepository.SaveChangesAsync();
     }
+    private async Task<GoogleJsonWebSignature.Payload>
+    ValidateGoogleTokenAsync(string idToken)
+    {
+        return await GoogleJsonWebSignature.ValidateAsync(
+            idToken,
+            new GoogleJsonWebSignature.ValidationSettings
+            {
+                Audience = new[]
+                {
+                    _googleSettings.ClientId
+                }
+            });
+    }
+    public async Task<AuthResponseDto>
+    GoogleRegisterAsync(string idToken)
+    {
+        var payload =
+            await ValidateGoogleTokenAsync(idToken);
+
+        var existingUser =
+            await _userRepository.GetByEmailAsync(
+                payload.Email);
+
+        if (existingUser != null)
+        {
+            throw new Exception(
+                "An account with this email already exists. Please log in.");
+        }
+
+        var user = new User
+        {
+            Name = payload.Name,
+
+            Email = payload.Email,
+
+            PasswordHash =
+                BCrypt.Net.BCrypt.HashPassword(
+                    Guid.NewGuid().ToString()),
+
+            Role = "User",
+
+            CreatedDate = DateTime.UtcNow
+        };
+
+        await _userRepository.AddAsync(user);
+
+        await _userRepository.SaveChangesAsync();
+
+        return new AuthResponseDto
+        {
+            Token = _jwtService.GenerateToken(user),
+
+            Name = user.Name,
+
+            Email = user.Email,
+
+            Role = user.Role
+        };
+    }
+    public async Task<AuthResponseDto>
+    GoogleLoginAsync(string idToken)
+    {
+        var payload =
+            await ValidateGoogleTokenAsync(idToken);
+
+        var user =
+            await _userRepository.GetByEmailAsync(
+                payload.Email);
+
+        if (user == null)
+        {
+            throw new Exception(
+                "No account found. Please sign up first.");
+        }
+
+        return new AuthResponseDto
+        {
+            Token = _jwtService.GenerateToken(user),
+
+            Name = user.Name,
+
+            Email = user.Email,
+
+            Role = user.Role
+        };
+    }
+    
 }

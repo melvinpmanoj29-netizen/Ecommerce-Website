@@ -6,6 +6,9 @@ import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import Button from "../../components/buttons/Button";
 import { FaUserPlus } from "react-icons/fa";
+import GoogleButton from "../../components/auth/GoogleButton";
+
+import { googleRegister } from "../../services/authService";
 
 function RegisterPage() {
   const navigate = useNavigate();
@@ -37,6 +40,37 @@ function RegisterPage() {
       setLoading(false);
     }
   };
+  const handleGoogleRegister = async (
+  idToken: string
+) => {
+  try {
+    const response =
+      await googleRegister(idToken);
+
+    localStorage.setItem(
+      "token",
+      response.data.token
+    );
+
+    localStorage.setItem(
+      "user",
+      JSON.stringify(response.data)
+    );
+
+    toast.success(
+      "Account created successfully"
+    );
+
+    navigate("/");
+  } catch (error: any) {
+    toast.error(
+      error?.response?.data?.message ??
+      "Email already exists. Please log in."
+    );
+
+    navigate("/login");
+  }
+};
 
   return (
     <MainLayout>
@@ -47,7 +81,7 @@ function RegisterPage() {
           
           {/* Logo Header */}
           <div className="text-center mb-6">
-            <span className="text-3xl font-black tracking-tight italic font-outfit text-[#2874F0] dark:text-white select-none">
+            <span className="text-3xl font-black tracking-tight italic font-outfit text-[#2874F0] dark:text-[#FFE500] select-none">
               ME10X<span className="text-[#FB641B]">LUXE</span>
             </span>
             <h2 className="text-lg font-bold text-theme-primary mt-3 font-outfit">
@@ -109,6 +143,21 @@ function RegisterPage() {
               <FaUserPlus />
               <span>{loading ? "Registering..." : "Sign Up"}</span>
             </Button>
+            <div className="my-4 flex items-center">
+            <div className="flex-1 border-t border-theme"></div>
+
+            <span className="px-3 text-xs text-theme-muted">
+              OR
+            </span>
+
+            <div className="flex-1 border-t border-theme"></div>
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleButton
+              onSuccess={handleGoogleRegister}
+            />
+          </div>
           </form>
 
           {/* Bottom link */}

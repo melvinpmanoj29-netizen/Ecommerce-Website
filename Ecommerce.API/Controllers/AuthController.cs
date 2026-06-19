@@ -1,5 +1,6 @@
 using Ecommerce.API.Common;
 using Ecommerce.API.DTOs.Requests;
+using Ecommerce.API.DTOs.Responses; 
 using Ecommerce.API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -45,6 +46,39 @@ public class AuthController : ControllerBase
             Data = result
         });
     }
+    [HttpPost("google-register")]
+    public async Task<IActionResult> GoogleRegister(
+    GoogleAuthRequestDto dto)
+    {
+    var result =
+    await _authService.GoogleRegisterAsync(dto.IdToken);
+
+
+    return Ok(new ApiResponse<AuthResponseDto>
+    {
+        Success = true,
+        Message = "Registration successful",
+        Data = result
+    });
+
+    }
+
+    [HttpPost("google-login")]
+    public async Task<IActionResult> GoogleLogin(
+    GoogleAuthRequestDto dto)
+    {
+    var result =
+    await _authService.GoogleLoginAsync(dto.IdToken);
+
+    return Ok(new ApiResponse<AuthResponseDto>
+    {
+        Success = true,
+        Message = "Login successful",
+        Data = result
+    });
+
+    }
+
 
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordRequestDto dto)

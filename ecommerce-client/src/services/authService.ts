@@ -17,3 +17,21 @@ export const resetPassword = async (
   });
   return response.data;
 };
+
+export const googleLogin = async (idToken: string) => {
+  const response = await axiosInstance.post(
+    "/Auth/google-login",
+    { idToken }
+  );
+
+  return response.data;
+};
+
+export const googleRegister = async (idToken: string) => {
+  const response = await axiosInstance.post(
+    "/Auth/google-register",
+    { idToken }
+  );
+
+  return response.data;
+};

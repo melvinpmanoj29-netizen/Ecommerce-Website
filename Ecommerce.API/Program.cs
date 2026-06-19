@@ -8,7 +8,7 @@ using Ecommerce.API.Validators;
 using Ecommerce.API.Extensions;
 using Ecommerce.API.Authentication;
 using Ecommerce.API.Cloudinary;
-using Ecommerce.API.Models;
+using Ecommerce.API.Models;             
 using FluentValidation;
 using FluentValidation.AspNetCore;
 
@@ -201,7 +201,15 @@ if (jwtSettings != null)
                 };
         });
 }
+// google auth part 
 
+builder.Services.Configure<GoogleAuthSettings>(
+    builder.Configuration.GetSection("GoogleAuth"));
+
+
+
+
+    
 builder.Services.AddAuthorization();
 
 // =========================
