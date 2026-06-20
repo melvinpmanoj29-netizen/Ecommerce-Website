@@ -10,6 +10,8 @@ public class ProductResponseDto
 
     public decimal Price { get; set; }
 
+    public decimal CostPrice { get; set; }
+
     public int Stock { get; set; }
 
     public string ImageUrl { get; set; } = string.Empty;

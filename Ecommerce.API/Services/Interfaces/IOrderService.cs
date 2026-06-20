@@ -4,19 +4,17 @@ namespace Ecommerce.API.Services.Interfaces;
 
 public interface IOrderService
 {
-    Task CreateOrderAsync(
-        int userId);
+    Task CreateOrderAsync(int userId);
 
-    Task<IEnumerable<OrderResponseDto>>
-        GetOrdersAsync(
-            int userId);
-    Task<IEnumerable<OrderResponseDto>>
-        GetAllOrdersAsync();
+    Task<IEnumerable<OrderResponseDto>> GetOrdersAsync(int userId);
+    Task<IEnumerable<OrderResponseDto>> GetAllOrdersAsync();
 
-    Task<OrderResponseDto?>
-        GetOrderByIdAsync(
-            int id);
-    Task UpdateOrderStatusAsync(
-    int id,
-    string status);
+    Task<OrderResponseDto?> GetOrderByIdAsync(int id);
+    Task UpdateOrderStatusAsync( int id,string status);
+
+    Task CancelOrderAsync( int orderId,int userId);
+
+    Task RequestReturnAsync( int orderId,int userId);
+
+   
 }   

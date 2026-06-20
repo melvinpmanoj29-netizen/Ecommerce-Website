@@ -16,6 +16,7 @@ function EditProductPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [costPrice, setCostPrice] = useState("");
   const [stock, setStock] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -32,6 +33,7 @@ function EditProductPage() {
       setName(product.name);
       setDescription(product.description);
       setPrice(product.price.toString());
+      setCostPrice(product.costPrice.toString());
       setStock(product.stock.toString());
       setImageUrl(product.imageUrl);
       setCategoryId(product.categoryId.toString());
@@ -61,6 +63,7 @@ function EditProductPage() {
         name,
         description,
         price: Number(price),
+        costPrice: Number(costPrice),
         stock: Number(stock),
         imageUrl,
         categoryId: Number(categoryId)
@@ -125,7 +128,7 @@ function EditProductPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label htmlFor="edit-price" className="mb-1 font-semibold text-xs text-theme-secondary uppercase">
                   Price (INR) *
@@ -136,6 +139,20 @@ function EditProductPage() {
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   placeholder="Price"
+                  className="w-full bg-theme-body"
+                />
+              </div>
+              <div>
+                <label
+                  className="mb-1 font-semibold text-xs text-theme-secondary uppercase"
+                >
+                  Cost Price (INR) *
+                </label>
+
+                <input
+                  value={costPrice}
+                  onChange={(e) => setCostPrice(e.target.value)}
+                  placeholder="e.g. 65000"
                   className="w-full bg-theme-body"
                 />
               </div>

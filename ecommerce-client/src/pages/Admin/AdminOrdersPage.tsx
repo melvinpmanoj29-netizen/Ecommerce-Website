@@ -26,6 +26,14 @@ function AdminOrdersPage() {
   };
 
   const handleStatusChange = async (id: number, status: string) => {
+     const order = orders.find(o => o.id === id);
+
+      if (order?.status === "Cancelled") {
+        toast.error(
+          "Cancelled orders cannot be updated"
+        );
+        return;
+      }
     try {
       await updateOrderStatus(id, status);
       toast.success("Order status updated");
@@ -49,7 +57,22 @@ function AdminOrdersPage() {
         return "bg-purple-150 text-purple-800 border-purple-200 dark:bg-purple-950/20 dark:text-purple-400 dark:border-purple-900";
       default:
         return "bg-gray-150 text-gray-800 border-gray-200 dark:bg-slate-800 dark:text-slate-350 dark:border-slate-700";
-    }
+      case "OutForDelivery":
+        return "bg-indigo-100 text-indigo-800 border-indigo-200";
+      case "ReturnRequested":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+
+      case "ReturnApproved":
+        return "bg-teal-100 text-teal-800 border-teal-200";
+
+      case "ReturnRejected":
+        return "bg-red-100 text-red-800 border-red-200";
+
+      case "Refunded":
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    
+      }
+
   };
 
   return (
@@ -113,8 +136,13 @@ function AdminOrdersPage() {
                       <option value="Pending">Pending</option>
                       <option value="Processing">Processing</option>
                       <option value="Shipped">Shipped</option>
+                      <option value="OutForDelivery">Out For Delivery</option>
                       <option value="Delivered">Delivered</option>
                       <option value="Cancelled">Cancelled</option>
+                      <option value="ReturnRequested">Return Requested</option>
+                      <option value="ReturnApproved">Return Approved</option>
+                      <option value="ReturnRejected">Return Rejected</option>
+                      <option value="Refunded">Refunded</option>
                     </select>
                   </div>
                 </div>

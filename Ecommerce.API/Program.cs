@@ -118,17 +118,13 @@ builder.Services.AddScoped<
     IAuthService,
     AuthService>();
 
-builder.Services.AddScoped<
-    ICartService,
-    CartService>();
+builder.Services.AddScoped<ICartService,CartService>();
 
-builder.Services.AddScoped<
-    IOrderService,
-    OrderService>();
+builder.Services.AddScoped<IOrderService,OrderService>();
 
-builder.Services
-    .AddScoped<IUserService,
-        UserService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+
+builder.Services.AddScoped<IUserService,UserService>();
 
 // =========================
 // Cloudinary
@@ -227,6 +223,8 @@ builder.Services.AddCors(options =>
                 .AllowAnyOrigin();
         });
 });
+
+
 
 var app = builder.Build();
 

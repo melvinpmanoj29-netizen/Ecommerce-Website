@@ -15,4 +15,12 @@ public class Order
     public DateTime CreatedDate { get; set; }
 
     public ICollection<OrderItem> OrderItems{get;set; } = new List<OrderItem>();
+
+    public DateTime? DeliveredAt { get; set; }
+
+    public DateTime? ReturnRequestedAt { get; set; }
+
+    public bool RefundRequested { get; set; }
+
+    public decimal? RefundAmount { get; set; }
 }

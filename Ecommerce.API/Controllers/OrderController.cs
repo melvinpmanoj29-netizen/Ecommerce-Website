@@ -140,4 +140,34 @@ public class OrdersController : ControllerBase
                     "Status updated"
             });
     }
+
+    [HttpPost("{id}/cancel")]
+    public async Task<IActionResult> CancelOrder(int id)
+    {
+        await _orderService.CancelOrderAsync(
+            id,
+            GetUserId());
+
+        return Ok(
+            new ApiResponse<string>
+            {
+                Success = true,
+                Message = "Order cancelled successfully"
+            });
+    }
+
+    [HttpPost("{id}/request-return")]
+    public async Task<IActionResult> RequestReturn(int id)
+    {
+        await _orderService.RequestReturnAsync(
+            id,
+            GetUserId());
+
+        return Ok(
+            new ApiResponse<string>
+            {
+                Success = true,
+                Message = "Return and refund requested successfully"
+            });
+    }
 }   

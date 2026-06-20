@@ -11,6 +11,10 @@ public class OrderResponseDto
 
     public DateTime CreatedDate { get; set; }
 
+    public DateTime? DeliveredAt { get; set; }
+
+    public bool RefundRequested { get; set; }
+
     public List<OrderItemResponseDto>
         Items { get; set; }
             = new();

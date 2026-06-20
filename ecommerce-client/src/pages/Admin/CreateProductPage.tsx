@@ -13,6 +13,7 @@ function CreateProductPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [costPrice, setCostPrice] = useState("");
   const [stock, setStock] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -52,7 +53,7 @@ function CreateProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !price || !stock || !categoryId || !imageUrl) {
+    if (!name || !price || !costPrice || !stock || !categoryId || !imageUrl) {
       toast.error("Please fill in all required fields and upload an image");
       return;
     }
@@ -62,6 +63,7 @@ function CreateProductPage() {
         name,
         description,
         price: Number(price.replaceAll(",", "")),
+        costPrice: Number(costPrice.replaceAll(",", "")),
         stock: Number(stock),
         imageUrl,
         categoryId: Number(categoryId)
@@ -126,7 +128,7 @@ function CreateProductPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label htmlFor="prod-price" className="mb-1 font-semibold text-xs text-theme-secondary uppercase">
                   Price (INR) *
@@ -136,6 +138,20 @@ function CreateProductPage() {
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   placeholder="e.g. 79999"
+                  className="w-full bg-theme-body"
+                />
+              </div>
+              <div>
+                <label
+                  className="mb-1 font-semibold text-xs text-theme-secondary uppercase"
+                >
+                  Cost Price (INR) *
+                </label>
+
+                <input
+                  value={costPrice}
+                  onChange={(e) => setCostPrice(e.target.value)}
+                  placeholder="e.g. 65000"
                   className="w-full bg-theme-body"
                 />
               </div>

@@ -20,6 +20,9 @@ import PaymentSuccessPage from "../pages/PaymentSuccessPage";
 import PaymentCancelledPage from "../pages/PaymentCancelledPage";
 import ForgotPasswordPage from "../pages/Auth/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/Auth/ResetPasswordPage";
+import AnalyticsPage from "../pages/Admin/AnalyticsPage";
+
+
 function AppRoutes() {
   return (
     <Routes>
@@ -43,6 +46,7 @@ function AppRoutes() {
       <Route path="/payment-cancelled" element={<PaymentCancelledPage />}/>
       <Route path="/forgot-password" element={<ForgotPasswordPage />}/>
       <Route path="/reset-password" element={<ResetPasswordPage />}/>
+      <Route path="/admin/analytics" element={<AdminRoute><AnalyticsPage/></AdminRoute>}/>
     </Routes>
   );
 }

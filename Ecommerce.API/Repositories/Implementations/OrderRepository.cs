@@ -45,30 +45,35 @@ public class OrderRepository
     }
     public async Task<IEnumerable<Order>>
     GetAllOrdersAsync()
-{
-    return await _context.Orders
-        .Include(x => x.OrderItems)
-        .ThenInclude(x => x.Product)
-        .ToListAsync();
-}   
-public async Task
-    UpdateOrderStatusAsync(
-        int id,
-        string status)
-{
-    var order =
-        await _context.Orders
-            .FirstOrDefaultAsync(
-                x => x.Id == id);
-
-    if (order == null)
     {
-        throw new Exception(
-            "Order not found");
+        return await _context.Orders
+            .Include(x => x.OrderItems)
+            .ThenInclude(x => x.Product)
+            .ToListAsync();
+    }   
+    public async Task
+        UpdateOrderStatusAsync(
+            int id,
+            string status)
+    {
+        var order =
+            await _context.Orders
+                .FirstOrDefaultAsync(
+                    x => x.Id == id);
+
+        if (order == null)
+        {
+            throw new Exception(
+                "Order not found");
+        }
+
+        order.Status = status;
     }
 
-    order.Status = status;
-}
+    public void Update(Order order)
+    {
+        _context.Orders.Update(order);
+    }
 
     public async Task SaveChangesAsync()
     {

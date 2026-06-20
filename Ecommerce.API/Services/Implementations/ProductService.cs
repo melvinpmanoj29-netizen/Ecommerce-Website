@@ -72,6 +72,7 @@ public class ProductService : IProductService
         product.Name = dto.Name;
         product.Description = dto.Description;
         product.Price = dto.Price;
+        product.CostPrice = dto.CostPrice;
         product.Stock = dto.Stock;
         product.ImageUrl = dto.ImageUrl;
         product.CategoryId = dto.CategoryId;

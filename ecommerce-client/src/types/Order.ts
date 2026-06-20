@@ -11,4 +11,6 @@ export interface Order {
   status: string;
   createdDate: string;
   items: OrderItem[];
+  deliveredAt?: string | null;
+  refundRequested?: boolean;
 }

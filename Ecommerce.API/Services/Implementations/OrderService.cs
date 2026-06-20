@@ -2,6 +2,7 @@ using Ecommerce.API.DTOs.Responses;
 using Ecommerce.API.Models;
 using Ecommerce.API.Repositories.Interfaces;
 using Ecommerce.API.Services.Interfaces;
+using Ecommerce.API.Common;
 
 namespace Ecommerce.API.Services.Implementations;
 
@@ -170,6 +171,10 @@ public class OrderService : IOrderService
 
                 CreatedDate = order.CreatedDate,
 
+                DeliveredAt = order.DeliveredAt,
+
+                RefundRequested = order.RefundRequested,
+
                 Items = order.OrderItems
                     .Select(item =>
                         new OrderItemResponseDto
@@ -209,6 +214,10 @@ public class OrderService : IOrderService
             TotalAmount = order.TotalAmount,
 
             Status = order.Status,
+
+            DeliveredAt = order.DeliveredAt,
+
+            RefundRequested = order.RefundRequested,
 
             CreatedDate = order.CreatedDate,
 
@@ -250,6 +259,10 @@ public class OrderService : IOrderService
 
                 CreatedDate = order.CreatedDate,
 
+                DeliveredAt = order.DeliveredAt,
+
+                RefundRequested = order.RefundRequested,
+
                 Items = order.OrderItems
                     .Select(item =>
                         new OrderItemResponseDto
@@ -271,13 +284,184 @@ public class OrderService : IOrderService
     }
 
     public async Task UpdateOrderStatusAsync(
-        int id,
-        string status)
+    int id,
+    string status)
     {
-        await _orderRepository
-            .UpdateOrderStatusAsync(id, status);
+        var order =
+            await _orderRepository
+                .GetByIdAsync(id);
 
-        await _orderRepository
-            .SaveChangesAsync();
+        if (order == null)
+        {
+            throw new Exception("Order not found");
+        }
+        if (order.Status == OrderStatus.Cancelled)
+        {
+            throw new Exception(
+                "Cancelled orders cannot be updated");
+        }
+
+        if (order.Status == OrderStatus.Refunded)
+        {
+            throw new Exception(
+                "Refunded orders cannot be updated");
+        }
+
+       var allowedTransitions =
+    new Dictionary<string, List<string>>
+        {
+            {
+                OrderStatus.Pending,
+                new()
+                {
+                    OrderStatus.Processing,
+                    OrderStatus.Cancelled
+                }
+            },
+
+            {
+                OrderStatus.Processing,
+                new()
+                {
+                    OrderStatus.Shipped,
+                    OrderStatus.Cancelled
+                }
+            },
+
+            {
+                OrderStatus.Shipped,
+                new()
+                {
+                    OrderStatus.OutForDelivery
+                }
+            },
+
+            {
+                OrderStatus.OutForDelivery,
+                new()
+                {
+                    OrderStatus.Delivered
+                }
+            },
+
+            {
+                OrderStatus.Delivered,
+                new()
+                {
+                    OrderStatus.ReturnRequested
+                }
+            },
+
+            {
+                OrderStatus.ReturnRequested,
+                new()
+                {
+                    OrderStatus.ReturnApproved,
+                    OrderStatus.ReturnRejected
+                }
+            },
+
+            {
+                OrderStatus.ReturnApproved,
+                new()
+                {
+                    OrderStatus.Refunded
+                }
+            }
+        };
+        if (!allowedTransitions.TryGetValue(order.Status,out var nextStatuses)|| !nextStatuses.Contains(status))
+        {
+            throw new Exception(
+                $"Cannot change status from {order.Status} to {status}");
+        }
+        order.Status = status;  
+
+        if (status == OrderStatus.Delivered)
+        {
+            order.DeliveredAt = DateTime.UtcNow;
+        }
+       else
+        {
+            order.DeliveredAt = null;   
+        }
+
+        _orderRepository.Update(order);
+
+        await _orderRepository.SaveChangesAsync();
+    }
+
+    public async Task RequestReturnAsync(int orderId,int userId)
+    {
+        var order =
+            await _orderRepository.GetByIdAsync(orderId);
+
+        if (order == null)
+        {
+            throw new Exception("Order not found");
+        }
+
+        if (order.UserId != userId)
+        {
+            throw new Exception("Unauthorized");
+        }
+
+        if (order.Status != OrderStatus.Delivered)
+        {
+            throw new Exception(
+                "Only delivered orders can be returned");
+        }
+
+        if (order.DeliveredAt == null)
+        {
+            throw new Exception(
+                "Delivery date not found");
+        }
+
+        if (order.DeliveredAt.Value.AddDays(7)
+            < DateTime.UtcNow)
+        {
+            throw new Exception(
+                "Return window has expired");
+        }
+
+        order.Status = OrderStatus.ReturnRequested;
+
+        order.ReturnRequestedAt = DateTime.UtcNow;
+
+        order.RefundRequested = true;
+
+        order.RefundAmount = order.TotalAmount;
+
+        _orderRepository.Update(order);
+
+        await _orderRepository.SaveChangesAsync();
+    }
+    public async Task CancelOrderAsync(int orderId,int userId)
+    {
+        var order =
+            await _orderRepository.GetByIdAsync(orderId);
+
+        if (order == null)
+        {
+            throw new Exception("Order not found");
+        }
+
+        if (order.UserId != userId)
+        {
+            throw new Exception("Unauthorized");
+        }
+
+        if (order.Status != OrderStatus.Pending &&
+            order.Status != OrderStatus.Processing)
+        {
+            throw new Exception(
+                "This order can no longer be cancelled");
+        }
+
+        order.Status = OrderStatus.Cancelled;
+
+        _orderRepository.Update(order);
+
+        await _orderRepository.SaveChangesAsync();
     }
 }

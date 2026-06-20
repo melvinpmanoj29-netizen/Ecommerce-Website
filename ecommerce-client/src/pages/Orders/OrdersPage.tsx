@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
-import { getOrders } from "../../services/orderService";
+import { getOrders ,cancelOrder, requestReturn } from "../../services/orderService";
 import type { Order } from "../../types/Order";
 import { FaBoxOpen, FaCalendarAlt, FaReceipt } from "react-icons/fa";
+import toast from "react-hot-toast";
+import ConfirmModal from "../../components/common/ConfirmModal";
 
 function OrdersPage() {
+  const [selectedOrderId, setSelectedOrderId] =
+    useState<number | null>(null);
+
+  const [showCancelModal, setShowCancelModal] =
+    useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,6 +32,69 @@ function OrdersPage() {
     }
   };
 
+  const canCancel = (status: string) => {
+  return status === "Pending" || status === "Processing";
+  };
+
+  const canRequestReturn = (order: Order) => {
+    if (order.status !== "Delivered" || !order.deliveredAt) {
+      return false;
+    }
+
+    const deliveredDate = new Date(order.deliveredAt);
+
+    const expiryDate = new Date(deliveredDate);
+
+    expiryDate.setDate(expiryDate.getDate() + 7);
+
+    return expiryDate > new Date();
+  };
+
+  const handleCancelOrder = async () => {
+    if (!selectedOrderId) return;
+
+    try {
+      await cancelOrder(selectedOrderId);
+
+      toast.success("Order cancelled successfully");
+
+      loadOrders();
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+        "Failed to cancel order"
+      );
+    } finally {
+      setShowCancelModal(false);
+      setSelectedOrderId(null);
+    }
+  };
+
+  const handleRequestReturn = async (orderId: number) => {
+    if (
+      !window.confirm(
+        "Request a return and refund for this order?"
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await requestReturn(orderId);
+
+      toast.success(
+        "Return and refund requested"
+      );
+
+      loadOrders();
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+        "Failed to request return"
+      );
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Delivered":
@@ -37,8 +107,41 @@ function OrdersPage() {
         return "bg-red-100 text-red-800 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-slate-800 dark:text-slate-350 dark:border-slate-700/50";
+      case "OutForDelivery":
+        return "bg-indigo-100 text-indigo-800 border-indigo-200";
+      case "ReturnRequested":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+
+      case "ReturnApproved":
+        return "bg-teal-100 text-teal-800 border-teal-200";
+
+      case "ReturnRejected":
+        return "bg-red-100 text-red-800 border-red-200";
+
+      case "Refunded":
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
+
+    const confirmCancelOrder = async () => {
+      if (!selectedOrderId) return;
+
+      try {
+        await cancelOrder(selectedOrderId);
+
+        toast.success("Order cancelled successfully");
+
+        loadOrders();
+      } catch (error: any) {
+        toast.error(
+          error?.response?.data?.message ||
+          "Failed to cancel order"
+        );
+      } finally {
+        setShowCancelModal(false);
+        setSelectedOrderId(null);
+      }
+    };
 
   return (
     <MainLayout>
@@ -117,9 +220,34 @@ function OrdersPage() {
 
                 {/* Card Footer row */}
                 <div className="bg-gray-50/50 dark:bg-slate-900/10 px-5 py-4 border-t border-theme/60 flex justify-between items-center gap-3">
-                  <span className="text-xs text-theme-muted font-semibold flex items-center gap-1.5">
-                    <FaReceipt /> Invoice Available
-                  </span>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-xs text-theme-muted font-semibold flex items-center gap-1.5">
+                      <FaReceipt /> Invoice Available
+                    </span>
+
+                    {canCancel(order.status) && (
+                      <button
+                      onClick={() =>{
+                          setSelectedOrderId(order.id);
+                          setShowCancelModal(true);
+                        }}
+                        className="px-3 py-1 text-xs font-semibold rounded-sm bg-red-500 hover:bg-red-600 text-white transition-colors"
+                      >
+                        Cancel Order
+                      </button>
+                    )}
+
+                    {canRequestReturn(order) && (
+                      <button
+                        onClick={() =>{
+                         handleRequestReturn(order.id);
+                        }}
+                        className="px-3 py-1 text-xs font-semibold rounded-sm bg-orange-500 hover:bg-orange-600 text-white transition-colors"
+                      >
+                        Request Return & Refund
+                      </button>
+                    )}
+                  </div>
                   
                   <div className="flex items-baseline gap-2">
                     <span className="text-xs text-theme-muted">Order Total:</span>
@@ -133,6 +261,17 @@ function OrdersPage() {
           </div>
         )}
       </div>
+      <ConfirmModal
+        isOpen={showCancelModal}
+        title="Cancel Order"
+        message="Are you sure you want to cancel this order? This action cannot be undone."
+        confirmText="Yes, Cancel"
+        onConfirm={confirmCancelOrder}
+        onClose={() => {
+          setShowCancelModal(false);
+          setSelectedOrderId(null);
+        }}
+      />
     </MainLayout>
   );
 }

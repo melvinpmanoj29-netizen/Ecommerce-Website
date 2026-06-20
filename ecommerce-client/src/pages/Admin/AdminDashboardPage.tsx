@@ -5,8 +5,7 @@ import { useEffect, useState } from "react";
 import { getProducts } from "../../services/productService";
 import { getCategories } from "../../services/categoryService";
 import { getAllOrders } from "../../services/adminOrderService";
-import { FaBoxes, FaTags, FaShoppingBag, FaUsers, FaArrowRight, FaChartLine } from "react-icons/fa";
-
+import { FaBoxes, FaTags, FaShoppingBag, FaUsers, FaArrowRight, FaChartLine, FaChartBar } from "react-icons/fa";
 function AdminDashboardPage() {
   const [productCount, setProductCount] = useState(0);
   const [categoryCount, setCategoryCount] = useState(0);
@@ -185,9 +184,7 @@ function AdminDashboardPage() {
             </Link>
 
             <Link
-              to="/admin/users"
-              className="group flex items-center justify-between p-4 bg-theme-card border border-theme rounded-md shadow-sm hover:shadow-md transition-all duration-200"
-            >
+              to="/admin/users" className="group flex items-center justify-between p-4 bg-theme-card border border-theme rounded-md shadow-sm hover:shadow-md transition-all duration-200">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-purple-100 dark:bg-slate-800 text-purple-600 rounded-full flex items-center justify-center text-sm">
                   <FaUsers />
@@ -199,6 +196,28 @@ function AdminDashboardPage() {
               </div>
               <FaArrowRight size={12} className="text-theme-muted group-hover:text-[#2874F0] group-hover:translate-x-1.5 transition-all" />
             </Link>
+            <Link to="/admin/analytics" className="group flex items-center justify-between p-4 bg-theme-card border border-theme rounded-md shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-cyan-100 dark:bg-slate-800 text-cyan-600 rounded-full flex items-center justify-center text-sm">
+                    <FaChartBar />
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-bold text-theme-primary">
+                      Analytics
+                    </h3>
+
+                    <p className="text-[11px] text-theme-muted mt-0.5">
+                      View sales and inventory insights
+                    </p>
+                  </div>
+                </div>
+
+                <FaArrowRight
+                  size={12}
+                  className="text-theme-muted group-hover:text-[#2874F0] group-hover:translate-x-1.5 transition-all"
+                />
+              </Link>
           </div>
 
         </div>

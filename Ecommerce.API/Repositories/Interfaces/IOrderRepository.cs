@@ -14,5 +14,7 @@ public interface IOrderRepository
         GetByIdAsync(int id);
     Task UpdateOrderStatusAsync(int id,string status);
 
+    void Update(Order order);
+
     Task SaveChangesAsync();
 }
