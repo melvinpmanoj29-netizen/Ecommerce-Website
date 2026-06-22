@@ -3,6 +3,7 @@ using Ecommerce.API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Ecommerce.API.Constants;
 
 namespace Ecommerce.API.Controllers;
 
@@ -35,18 +36,14 @@ public class OrdersController : ControllerBase
         );
     }
 
-    return int.Parse(
-        userIdClaim.Value
-    );
+    return int.Parse(userIdClaim.Value);
 }
 
     [HttpPost]
     public async Task<IActionResult>
         Checkout()
     {
-        await _orderService
-            .CreateOrderAsync(
-                GetUserId());
+        await _orderService.CreateOrderAsync(GetUserId());
 
         return Ok(
             new ApiResponse<string>
@@ -86,6 +83,8 @@ public class OrdersController : ControllerBase
             ex.ToString());
     }
     }
+
+    [Authorize(Roles = Roles.Admin)]
     [HttpGet("admin")]
     public async Task<IActionResult>
         GetAllOrders()
@@ -121,6 +120,7 @@ public class OrdersController : ControllerBase
                 Data = order
             });
     }
+    [Authorize(Roles = Roles.Admin)]
     [HttpPut("{id}/status")]
     public async Task<IActionResult>
         UpdateStatus(
@@ -138,6 +138,77 @@ public class OrdersController : ControllerBase
                 Success = true,
                 Message =
                     "Status updated"
+            });
+    }
+
+    [Authorize(Roles = Roles.Admin)]
+    [HttpPost("{id}/assign-delivery-agent")]
+    public async Task<IActionResult> AssignDeliveryAgent(
+        int id,
+        int deliveryAgentId)
+    {
+        await _orderService.AssignDeliveryAgentAsync(
+            id,
+            deliveryAgentId);
+
+        return Ok(
+            new ApiResponse<string>
+            {
+                Success = true,
+                Message = "Delivery agent assigned successfully"
+            });
+    }
+    [Authorize(Roles = Roles.DeliveryAgent)]
+    [HttpGet("delivery")]
+    public async Task<IActionResult> GetAssignedOrders()
+    {
+        var deliveryAgentId = GetUserId();
+
+        var orders =
+            await _orderService.GetAssignedOrdersAsync(
+                deliveryAgentId);
+
+        return Ok(
+            new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Assigned orders fetched",
+                Data = orders
+            });
+    }
+
+    [Authorize(Roles = Roles.DeliveryAgent)]
+    [HttpPut("{id}/delivery-status")]
+    public async Task<IActionResult> UpdateDeliveryStatus(
+        int id,
+        string status)
+    {
+        var allowedStatuses = new[]
+        {
+            "Shipped",
+            "OutForDelivery",
+            "Delivered"
+        };
+
+        if (!allowedStatuses.Contains(status))
+        {
+            return BadRequest(
+                new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Invalid delivery status"
+                });
+        }
+
+        await _orderService.UpdateOrderStatusAsync(
+            id,
+            status);
+
+        return Ok(
+            new ApiResponse<string>
+            {
+                Success = true,
+                Message = "Delivery status updated"
             });
     }
 

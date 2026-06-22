@@ -1,19 +1,23 @@
 import MainLayout from "../../layouts/MainLayout";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-
+import toast from "react-hot-toast";
+import { getAnalytics } from "../../services/analyticsService";
 import { getProducts } from "../../services/productService";
 import { getCategories } from "../../services/categoryService";
 import { getAllOrders } from "../../services/adminOrderService";
 import { FaBoxes, FaTags, FaShoppingBag, FaUsers, FaArrowRight, FaChartLine, FaChartBar } from "react-icons/fa";
+
+
 function AdminDashboardPage() {
   const [productCount, setProductCount] = useState(0);
   const [categoryCount, setCategoryCount] = useState(0);
   const [orderCount, setOrderCount] = useState(0);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
 
-  useEffect(() => {
+    useEffect(() => {
     loadStats();
+    checkLowStock();
   }, []);
 
   const loadStats = async () => {
@@ -34,6 +38,45 @@ function AdminDashboardPage() {
       console.error(error);
     }
   };
+  const checkLowStock = async () => {
+      try {
+        const analytics = await getAnalytics();
+
+        if (analytics.lowStockProducts.length === 0) {
+          return;
+        }
+
+        const lastAlert = localStorage.getItem(
+          "lastLowStockAlert"
+        );
+
+        const twelveHours = 12 * 60 * 60 * 1000;
+
+        if (
+          !lastAlert ||
+          Date.now() - Number(lastAlert) > twelveHours
+        ) {
+          toast.error(
+            `⚠️ ${analytics.lowStockProducts.length} product${
+              analytics.lowStockProducts.length > 1 ? "s are" : " is"
+            } running low on stock`,
+            {
+              duration: 6000,
+            }
+          );
+
+          localStorage.setItem(
+            "lastLowStockAlert",
+            Date.now().toString()
+          );
+          console.log("Low stock products:", analytics.lowStockProducts);
+console.log("Last alert:", localStorage.getItem("lastLowStockAlert"));
+        }
+      } catch (error) {
+        console.error(error);
+        
+      }
+    };
 
   return (
     <MainLayout>

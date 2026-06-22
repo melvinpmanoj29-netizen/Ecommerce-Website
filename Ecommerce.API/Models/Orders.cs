@@ -8,6 +8,10 @@ public class Order
 
     public User User { get; set; } = null!;
 
+    public int? DeliveryAgentId { get; set; }
+
+    public User? DeliveryAgent { get; set; }
+
     public decimal TotalAmount { get; set; }
 
     public string Status { get; set; } = string.Empty;

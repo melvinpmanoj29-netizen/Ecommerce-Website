@@ -15,4 +15,6 @@ public class CartResponseDto
     public decimal SubTotal { get; set; }
 
     public string ImageUrl { get; set; } = string.Empty;    
+    
+    public int Stock { get; set; }
 }

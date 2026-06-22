@@ -3,13 +3,17 @@ import MainLayout from "../../layouts/MainLayout";
 import { getAllOrders, updateOrderStatus } from "../../services/adminOrderService";
 import toast from "react-hot-toast";
 import { FaCalendarAlt, FaShoppingBag } from "react-icons/fa";
+import {getDeliveryAgents,assignDeliveryAgent} from "../../services/deliveryAgentService";
 
 function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deliveryAgents, setDeliveryAgents] = useState<any[]>([]);
+  const [selectedAgents, setSelectedAgents] = useState<Record<number, number>>({});
 
   useEffect(() => {
     loadOrders();
+    loadDeliveryAgents();
   }, []);
 
   const loadOrders = async () => {
@@ -22,6 +26,16 @@ function AdminOrdersPage() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadDeliveryAgents = async () => {
+    try {
+      const data = await getDeliveryAgents();
+      setDeliveryAgents(data);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load delivery agents");
     }
   };
 
@@ -40,6 +54,25 @@ function AdminOrdersPage() {
       loadOrders();
     } catch {
       toast.error("Status update failed");
+    }
+  };
+
+  const handleAssignDeliveryAgent = async (orderId: number) => {
+    const deliveryAgentId = selectedAgents[orderId];
+
+    if (!deliveryAgentId) {
+      toast.error("Please select a delivery agent");
+      return;
+    }
+
+    try {
+      await assignDeliveryAgent(orderId, deliveryAgentId);
+
+      toast.success("Delivery agent assigned");
+
+      loadOrders();
+    } catch {
+      toast.error("Assignment failed");
     }
   };
 
@@ -116,15 +149,50 @@ function AdminOrdersPage() {
                     <span className="flex items-center gap-1"><FaCalendarAlt size={10} /> {new Date(order.createdDate).toLocaleDateString()}</span>
                     <span>Total Amount: <strong className="text-[#2874F0] dark:text-[#5897ff]">₹{order.totalAmount}</strong></span>
                   </div>
+                  {order.deliveryAgentName && (
+                  <span>
+                    Delivery Agent:
+                    <strong className="ml-1 text-theme-primary">
+                      {order.deliveryAgentName}
+                    </strong>
+                  </span>
+                )}
                 </div>
 
                 {/* Adjust status form controls */}
                 <div className="flex items-center gap-3 w-full md:w-auto shrink-0 justify-between md:justify-end border-t border-theme/40 md:border-t-0 pt-3 md:pt-0">
-                  
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={selectedAgents[order.id] || ""}
+                      onChange={(e) =>
+                        setSelectedAgents((prev) => ({
+                          ...prev,
+                          [order.id]: Number(e.target.value),
+                        }))
+                      } 
+                      className="bg-theme-body border border-theme p-1.5 py-1 text-xs font-semibold rounded shadow-sm"
+                    >
+                      <option value="">Assign Agent</option>
+
+                      {deliveryAgents.map((agent) => (
+                        <option key={agent.id} value={agent.id}>
+                          {agent.name}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      onClick={() => handleAssignDeliveryAgent(order.id)}
+                      className="px-3 py-1 text-xs rounded bg-[#2874F0] text-white hover:bg-[#1f5fc9]"
+                    >
+                      Assign
+                    </button>
+                  </div>
                   {/* Status pill */}
                   <span className={`px-2.5 py-0.5 rounded-sm text-xs font-bold border ${getStatusColor(order.status)}`}>
                     {order.status}
                   </span>
+                  
 
                   {/* Selector field */}
                   <div className="flex items-center gap-1.5">

@@ -54,6 +54,7 @@ public class ApplicationDbContext : DbContext
             .HasOne(x => x.User)
             .WithMany(x => x.Reviews)
             .HasForeignKey(x => x.UserId);
+
         modelBuilder.Entity<Order>()
             .HasMany(x => x.OrderItems)
             .WithOne(x => x.Order)
@@ -64,5 +65,17 @@ public class ApplicationDbContext : DbContext
             .HasOne(x => x.Product)
             .WithMany()
             .HasForeignKey(x => x.ProductId);
-    }
+
+        modelBuilder.Entity<Order>()
+            .HasOne(x => x.User)
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Order>()
+            .HasOne(x => x.DeliveryAgent)
+            .WithMany()
+            .HasForeignKey(x => x.DeliveryAgentId)
+            .OnDelete(DeleteBehavior.SetNull);
+            }
 }

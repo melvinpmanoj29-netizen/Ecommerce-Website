@@ -195,6 +195,11 @@ function Navbar() {
             <span className="hidden sm:inline">Cart</span>
           </Link>
         </div>
+        {user?.role === "DeliveryAgent" && (
+        <Link to="/delivery">
+          Deliveries
+        </Link>
+      )}
       </div>
       
       {/* Mobile Search Bar - displayed only on mobile below the main header */}

@@ -15,7 +15,9 @@ public class OrderResponseDto
 
     public bool RefundRequested { get; set; }
 
-    public List<OrderItemResponseDto>
-        Items { get; set; }
-            = new();
+    public int? DeliveryAgentId { get; set; }
+
+    public string? DeliveryAgentName { get; set; }
+
+    public List<OrderItemResponseDto> Items { get; set; } = new();
 }

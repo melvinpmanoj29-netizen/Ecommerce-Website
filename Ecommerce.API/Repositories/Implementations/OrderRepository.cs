@@ -27,29 +27,31 @@ public class OrderRepository
     public async Task<IEnumerable<Order>>
         GetUserOrdersAsync(int userId)
     {
-        return await _context.Orders
-            .Include(x => x.OrderItems)
-            .ThenInclude(x => x.Product)
-            .Where(x => x.UserId == userId)
-            .ToListAsync();
+       return await _context.Orders
+        .Include(x => x.DeliveryAgent)
+        .Include(x => x.OrderItems)
+        .ThenInclude(x => x.Product)
+        .Where(x => x.UserId == userId)
+        .ToListAsync();
     }
 
     public async Task<Order?>
         GetByIdAsync(int id)
     {
         return await _context.Orders
-            .Include(x => x.OrderItems)
-            .ThenInclude(x => x.Product)
-            .FirstOrDefaultAsync(
-                x => x.Id == id);
+        .Include(x => x.DeliveryAgent)
+        .Include(x => x.OrderItems)
+        .ThenInclude(x => x.Product)
+        .FirstOrDefaultAsync(x => x.Id == id);
     }
     public async Task<IEnumerable<Order>>
     GetAllOrdersAsync()
     {
-        return await _context.Orders
-            .Include(x => x.OrderItems)
-            .ThenInclude(x => x.Product)
-            .ToListAsync();
+       return await _context.Orders
+        .Include(x => x.DeliveryAgent)
+        .Include(x => x.OrderItems)
+        .ThenInclude(x => x.Product)
+        .ToListAsync();
     }   
     public async Task
         UpdateOrderStatusAsync(
@@ -69,6 +71,32 @@ public class OrderRepository
 
         order.Status = status;
     }
+
+    public async Task<IEnumerable<Order>>
+    GetAssignedOrdersAsync(int deliveryAgentId)
+        {
+            return await _context.Orders
+                .Include(x => x.DeliveryAgent)
+                .Include(x => x.OrderItems)
+                .ThenInclude(x => x.Product)
+                .Where(x => x.DeliveryAgentId == deliveryAgentId)
+                .ToListAsync();
+        }
+
+    public async Task AssignDeliveryAgentAsync(
+        int orderId,
+        int deliveryAgentId)
+        {
+            var order = await _context.Orders
+                .FirstOrDefaultAsync(x => x.Id == orderId);
+
+            if (order == null)
+            {
+                throw new Exception("Order not found");
+            }
+
+            order.DeliveryAgentId = deliveryAgentId;
+        }
 
     public void Update(Order order)
     {

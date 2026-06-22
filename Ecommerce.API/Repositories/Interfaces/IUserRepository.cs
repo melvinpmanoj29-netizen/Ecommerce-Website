@@ -17,4 +17,5 @@ public interface IUserRepository
     Task UpdateRoleAsync( int id, string role);   
 
     Task SaveChangesAsync();
+    
 }

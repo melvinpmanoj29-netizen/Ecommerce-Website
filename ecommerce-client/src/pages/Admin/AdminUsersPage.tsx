@@ -4,10 +4,16 @@ import { getUsers, deleteUser, updateUserRole } from "../../services/userService
 import toast from "react-hot-toast";
 import Button from "../../components/buttons/Button";
 import { FaTrash, FaUsers, FaUserCog } from "react-icons/fa";
+import ConfirmModal from "../../components/common/ConfirmModal";
 
 function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] =
+  useState(false);
+
+  const [selectedUserId, setSelectedUserId] =
+    useState<number | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -25,17 +31,29 @@ function AdminUsersPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    const confirmed = window.confirm("Delete this user account?");
-    if (!confirmed) return;
+ const openDeleteModal = (userId: number) => {
+    setSelectedUserId(userId);
+    setShowDeleteModal(true);
+    };                     
+  
+  const confirmDeleteUser = async () => {
+    if (!selectedUserId) return;
 
     try {
-      await deleteUser(id);
+      await deleteUser(selectedUserId);
+
       toast.success("User deleted successfully");
+
       loadUsers();
-    } catch {
-      toast.error("Delete failed");
-    }
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+        "Failed to delete user"
+      );
+    } finally {
+      setShowDeleteModal(false);
+      setSelectedUserId(null);
+    } 
   };
 
   const handleRoleChange = async (id: number, role: string) => {
@@ -48,6 +66,7 @@ function AdminUsersPage() {
     }
   };
 
+  
   return (
     <MainLayout>
       <div className="py-6">
@@ -98,6 +117,7 @@ function AdminUsersPage() {
                     >
                       <option value="User">User</option>
                       <option value="Admin">Admin</option>
+                      <option value="DeliveryAgent">Delivery Agent</option>
                     </select>
                   </div>
                 </div>
@@ -105,7 +125,7 @@ function AdminUsersPage() {
                 {/* Actions */}
                 <div className="flex gap-2 w-full sm:w-auto shrink-0 justify-end pt-3 sm:pt-0 border-t border-theme/40 sm:border-t-0">
                   <Button
-                    onClick={() => handleDelete(user.id)}
+                    onClick={() => openDeleteModal(user.id)}
                     variant="danger"
                     className="px-3 py-1.5 flex items-center gap-1.5"
                   >
@@ -119,6 +139,18 @@ function AdminUsersPage() {
           </div>
         )}
       </div>
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete User Account"
+        message="Are you sure you want to permanently delete this user account? This action cannot be undone."
+        confirmText="Delete User"
+        cancelText="Keep User"
+        onConfirm={confirmDeleteUser}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setSelectedUserId(null);
+        }}
+      />
     </MainLayout>
   );
 }

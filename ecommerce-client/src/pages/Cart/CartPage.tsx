@@ -29,8 +29,12 @@ function CartPage() {
     }
   };
 
-  const increaseQuantity = async (itemId: number, currentQty: number) => {
+  const increaseQuantity = async (itemId: number,currentQty: number,stock: number) => {
     try {
+      if (currentQty >= stock) {
+        toast.error(`Only ${stock} items available`);
+        return;
+      }
       await updateCart(itemId, currentQty + 1);
       loadCart();
       window.dispatchEvent(new Event("cartUpdated"));
@@ -165,7 +169,9 @@ function CartPage() {
                       {item.quantity}
                     </span>
                     <button
-                      onClick={() => increaseQuantity(item.id, item.quantity)}
+                      onClick={() => increaseQuantity(item.id,item.quantity,item.stock)}
+                      disabled={item.quantity >= item.stock}
+                      disabled:opacity-40 disabled:cursor-not-allowed
                       className="w-7 h-7 bg-theme-body border border-theme rounded-full flex items-center justify-center text-theme-primary hover:bg-gray-150 transition-colors cursor-pointer"
                       aria-label="Increase quantity"
                     >

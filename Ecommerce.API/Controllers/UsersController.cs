@@ -37,6 +37,23 @@ public class UsersController
             });
     }
 
+    [HttpGet("delivery-agents")]
+    public async Task<IActionResult>
+        GetDeliveryAgents()
+    {
+        var agents =
+            await _userService
+                .GetDeliveryAgentsAsync();
+
+        return Ok(
+            new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Delivery agents fetched",
+                Data = agents
+            });
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult>
         Delete(int id)

@@ -7,14 +7,18 @@ public interface IOrderService
     Task CreateOrderAsync(int userId);
 
     Task<IEnumerable<OrderResponseDto>> GetOrdersAsync(int userId);
-    Task<IEnumerable<OrderResponseDto>> GetAllOrdersAsync();
 
     Task<OrderResponseDto?> GetOrderByIdAsync(int id);
-    Task UpdateOrderStatusAsync( int id,string status);
 
-    Task CancelOrderAsync( int orderId,int userId);
+    Task<IEnumerable<OrderResponseDto>> GetAllOrdersAsync();
 
-    Task RequestReturnAsync( int orderId,int userId);
+    Task UpdateOrderStatusAsync(int id,string status);
 
-   
-}   
+    Task RequestReturnAsync(int orderId,int userId);
+
+    Task CancelOrderAsync(int orderId,int userId);
+
+    Task AssignDeliveryAgentAsync(int orderId,int deliveryAgentId);
+
+    Task<IEnumerable<OrderResponseDto>> GetAssignedOrdersAsync(int deliveryAgentId);
+}

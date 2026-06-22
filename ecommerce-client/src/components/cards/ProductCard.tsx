@@ -87,8 +87,20 @@ function ProductCard({ product }: Props) {
 
         {/* Stock & Delivery details */}
         <div className="flex justify-between items-center mt-3 pt-2.5 border-t border-theme/60 text-xs font-medium">
-          <span className={product.stock > 0 ? "text-[#388e3c]" : "text-red-500"}>
-            {product.stock > 0 ? "In Stock" : "Out of Stock"}
+          <span
+            className={`font-medium ${
+              product.stock === 0
+                ? "text-red-500"
+                : product.stock <= 5
+                  ? "text-orange-500"
+                  : "text-green-500"
+            }`}
+          >
+            {product.stock === 0
+              ? "Out of Stock"
+              : product.stock <= 5
+                ? `Low Stock (${product.stock} left)`
+                : "In Stock"}
           </span>
           <span className="text-theme-muted text-[11px]">Free Delivery</span>
         </div>

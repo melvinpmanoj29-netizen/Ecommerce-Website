@@ -7,6 +7,9 @@ public interface IUserService
     Task<IEnumerable<UserResponseDto>>
         GetAllAsync();
 
+    Task<IEnumerable<UserResponseDto>>
+        GetDeliveryAgentsAsync();
+
     Task DeleteAsync(int id);
 
     Task UpdateRoleAsync(

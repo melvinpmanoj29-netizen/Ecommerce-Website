@@ -64,18 +64,23 @@ function ProductDetailsPage() {
     }
   };
 
-  const handleAddToCart = async () => {
-    try {
+  const handleAddToCart = async () => 
+  {
+    try 
+    {
       setAddingToCart(true);
       await addToCart(product.id, 1);
       toast.success("Added to cart!");
       
       // Dispatch a custom event to update the cart badge in Navbar
       window.dispatchEvent(new Event("cartUpdated"));
-    } catch (error) {
-      console.error(error);
-      toast.error("Could not add item to cart");
-    } finally {
+    } 
+    catch (error: any) 
+    {
+      toast.error(error?.response?.data?.message || "Could not add item to cart");
+    } 
+    finally 
+    {
       setAddingToCart(false);
     }
   };
@@ -85,9 +90,11 @@ function ProductDetailsPage() {
       await addToCart(product.id, 1);
       window.dispatchEvent(new Event("cartUpdated"));
       navigate("/cart");
-    } catch (error) {
-      console.error(error);
-      toast.error("Could not process transaction");
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+        "Could not add item to cart"
+      );
     }
   };
 
@@ -182,9 +189,24 @@ function ProductDetailsPage() {
 
           {/* Stock state */}
           <div className="mb-6 flex items-center gap-3">
-            <span className="text-sm font-semibold text-theme-secondary">Availability:</span>
-            <span className={`text-sm font-bold ${product.stock > 0 ? "text-[#388e3c]" : "text-red-500"}`}>
-              {product.stock > 0 ? `In Stock (only ${product.stock} items left)` : "Out of Stock"}
+            <span className="text-sm font-semibold text-theme-secondary">
+              Availability:
+            </span>
+
+            <span
+              className={`text-sm font-bold ${
+                product.stock === 0
+                  ? "text-red-500"
+                  : product.stock <= 5
+                    ? "text-orange-500"
+                    : "text-[#388e3c]"
+              }`}
+            >
+              {product.stock === 0
+                ? "Out of Stock"
+                : product.stock <= 5
+                  ? `Low Stock (${product.stock} left)`
+                  : "In Stock"}
             </span>
           </div>
 

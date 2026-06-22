@@ -3,6 +3,7 @@ using Ecommerce.API.Models;
 using Ecommerce.API.Repositories.Interfaces;
 using Ecommerce.API.Services.Interfaces;
 using Ecommerce.API.Common;
+using Ecommerce.API.Constants;
 
 namespace Ecommerce.API.Services.Implementations;
 
@@ -25,11 +26,10 @@ public class OrderService : IOrderService
         _emailService = emailService;
     }
 
-    public async Task CreateOrderAsync(int userId)
+   public async Task CreateOrderAsync(int userId)
     {
         var cartItems =
-            await _cartRepository
-                .GetUserCartAsync(userId);
+            await _cartRepository.GetUserCartAsync(userId);
 
         if (!cartItems.Any())
         {
@@ -39,7 +39,7 @@ public class OrderService : IOrderService
         var order = new Order
         {
             UserId = userId,
-            Status = "Pending",
+            Status = OrderStatus.Pending,
             CreatedDate = DateTime.UtcNow,
             OrderItems = new List<OrderItem>()
         };
@@ -48,6 +48,26 @@ public class OrderService : IOrderService
 
         foreach (var item in cartItems)
         {
+            if (item.Product == null)
+            {
+                throw new Exception(
+                    $"Product data not found for product ID {item.ProductId}");
+            }
+
+            if (item.Product.Stock <= 0)
+            {
+                throw new Exception(
+                    $"{item.Product.Name} is out of stock");
+            }
+
+            if (item.Quantity > item.Product.Stock)
+            {
+                throw new Exception(
+                    $"Only {item.Product.Stock} units of {item.Product.Name} are available");
+            }
+
+            item.Product.Stock -= item.Quantity;
+
             order.OrderItems.Add(
                 new OrderItem
                 {
@@ -57,68 +77,88 @@ public class OrderService : IOrderService
                 });
 
             total += item.Product.Price * item.Quantity;
+
+            _cartRepository.Delete(item);
         }
 
         order.TotalAmount = total;
 
         await _orderRepository.AddOrderAsync(order);
 
-        foreach (var item in cartItems)
-        {
-            _cartRepository.Delete(item);
-        }
-
         try
         {
             await _orderRepository.SaveChangesAsync();
 
             var user =
-                await _userRepository
-                    .GetByIdAsync(userId);
+                await _userRepository.GetByIdAsync(userId);
 
             if (user != null)
             {
                 try
                 {
-                    var itemsHtml = string.Join("\n", cartItems.Select(item => 
-                        $"<tr><td style='padding: 10px; border-bottom: 1px solid #eee;'>{item.Product.Name}</td>" +
-                        $"<td style='padding: 10px; border-bottom: 1px solid #eee; text-align: center;'>{item.Quantity}</td>" +
-                        $"<td style='padding: 10px; border-bottom: 1px solid #eee; text-align: right;'>₹{item.Product.Price:F2}</td></tr>"
-                    ));
+                    var itemsHtml = string.Join(
+                        "\n",
+                        cartItems.Select(item =>
+                            $"<tr><td style='padding: 10px; border-bottom: 1px solid #eee;'>{item.Product.Name}</td>" +
+                            $"<td style='padding: 10px; border-bottom: 1px solid #eee; text-align: center;'>{item.Quantity}</td>" +
+                            $"<td style='padding: 10px; border-bottom: 1px solid #eee; text-align: right;'>₹{item.Product.Price:F2}</td></tr>"
+                        ));
 
                     var emailHtml = $"""
                         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #e1e1e1; border-radius: 8px; overflow: hidden;">
                             <div style="background-color: #000; padding: 25px; text-align: center;">
                                 <h1 style="color: #fff; margin: 0; font-size: 24px; letter-spacing: 2px;">ME10XLUXE</h1>
                             </div>
+
                             <div style="padding: 30px; background-color: #ffffff;">
-                                <h2 style="color: #111; margin-top: 0; font-weight: 600;">Thank you for your order, {user.Name}!</h2>
-                                <p style="font-size: 16px; color: #555; line-height: 1.5;">We're excited to let you know that we've received your order <strong>#{order.Id}</strong> and are getting it ready for shipment.</p>
-                                
-                                <h3 style="margin-top: 35px; border-bottom: 2px solid #000; padding-bottom: 10px; font-weight: 600;">Order Summary</h3>
+                                <h2 style="color: #111; margin-top: 0; font-weight: 600;">
+                                    Thank you for your order, {user.Name}!
+                                </h2>
+
+                                <p style="font-size: 16px; color: #555; line-height: 1.5;">
+                                    We've received your order <strong>#{order.Id}</strong>
+                                    and are getting it ready for shipment.
+                                </p>
+
+                                <h3 style="margin-top: 35px; border-bottom: 2px solid #000; padding-bottom: 10px; font-weight: 600;">
+                                    Order Summary
+                                </h3>
+
                                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
                                     <thead>
                                         <tr style="background-color: #f8f8f8;">
-                                            <th style="padding: 12px 10px; text-align: left; color: #444; font-weight: 600;">Product</th>
-                                            <th style="padding: 12px 10px; text-align: center; color: #444; font-weight: 600;">Qty</th>
-                                            <th style="padding: 12px 10px; text-align: right; color: #444; font-weight: 600;">Price</th>
+                                            <th style="padding: 12px 10px; text-align: left;">Product</th>
+                                            <th style="padding: 12px 10px; text-align: center;">Qty</th>
+                                            <th style="padding: 12px 10px; text-align: right;">Price</th>
                                         </tr>
                                     </thead>
+
                                     <tbody>
                                         {itemsHtml}
                                     </tbody>
+
                                     <tfoot>
                                         <tr>
-                                            <td colspan="2" style="padding: 15px 10px; text-align: right; font-weight: 600; color: #111;">Total Amount:</td>
-                                            <td style="padding: 15px 10px; text-align: right; font-weight: 700; font-size: 18px; color: #000;">₹{order.TotalAmount:F2}</td>
+                                            <td colspan="2" style="padding: 15px 10px; text-align: right; font-weight: 600;">
+                                                Total Amount:
+                                            </td>
+
+                                            <td style="padding: 15px 10px; text-align: right; font-weight: 700; font-size: 18px;">
+                                                ₹{order.TotalAmount:F2}
+                                            </td>
                                         </tr>
                                     </tfoot>
                                 </table>
 
                                 <div style="background-color: #f8f8f8; padding: 20px; border-left: 4px solid #000; margin-top: 30px; border-radius: 4px;">
-                                    <p style="margin: 0; font-size: 16px;"><strong>Order Status:</strong> <span style="color: #2e7d32; font-weight: 600;">{order.Status}</span></p>
+                                    <p style="margin: 0; font-size: 16px;">
+                                        <strong>Order Status:</strong>
+                                        <span style="color: #2e7d32; font-weight: 600;">
+                                            {order.Status}
+                                        </span>
+                                    </p>
                                 </div>
-                                
+
                                 <p style="margin-top: 40px; font-size: 14px; color: #777; text-align: center; line-height: 1.5;">
                                     If you have any questions about your order, please reply to this email or contact our support team.
                                 </p>
@@ -133,8 +173,8 @@ public class OrderService : IOrderService
                 }
                 catch (Exception emailEx)
                 {
-                    // Log the error but don't fail the order checkout
-                    Console.WriteLine($"Failed to send confirmation email to {user.Email}: {emailEx.Message}");
+                    Console.WriteLine(
+                        $"Failed to send confirmation email to {user.Email}: {emailEx.Message}");
                 }
             }
         }
@@ -152,94 +192,72 @@ public class OrderService : IOrderService
             throw new Exception(message);
         }
     }
+    public async Task<OrderResponseDto?>
+    GetOrderByIdAsync(int id)
+{
+    var order =
+        await _orderRepository.GetByIdAsync(id);
 
-    public async Task<IEnumerable<OrderResponseDto>>
-        GetOrdersAsync(int userId)
+    if (order == null)
     {
-        var orders =
-            await _orderRepository
-                .GetUserOrdersAsync(userId);
-
-        return orders.Select(order =>
-            new OrderResponseDto
-            {
-                Id = order.Id,
-
-                TotalAmount = order.TotalAmount,
-
-                Status = order.Status,
-
-                CreatedDate = order.CreatedDate,
-
-                DeliveredAt = order.DeliveredAt,
-
-                RefundRequested = order.RefundRequested,
-
-                Items = order.OrderItems
-                    .Select(item =>
-                        new OrderItemResponseDto
-                        {
-                            ProductName =
-                                item.Product.Name,
-
-                            ImageUrl =
-                                item.Product.ImageUrl,
-
-                            Quantity =
-                                item.Quantity,
-
-                            Price =
-                                item.Price
-                        })
-                    .ToList()
-            });
+        return null;
     }
 
-    public async Task<OrderResponseDto?>
-        GetOrderByIdAsync(int id)
+    return new OrderResponseDto
     {
-        var order =
-            await _orderRepository
-                .GetByIdAsync(id);
+        Id = order.Id,
+        TotalAmount = order.TotalAmount,
+        Status = order.Status,
+        CreatedDate = order.CreatedDate,
+        DeliveredAt = order.DeliveredAt,
+        RefundRequested = order.RefundRequested,
+        DeliveryAgentId = order.DeliveryAgentId,
+        DeliveryAgentName = order.DeliveryAgent?.Name,
 
-        if (order == null)
-        {
-            return null;
-        }
+        Items = order.OrderItems
+            .Select(item =>
+                new OrderItemResponseDto
+                {
+                    ProductName = item.Product.Name,
+                    ImageUrl = item.Product.ImageUrl,
+                    Quantity = item.Quantity,
+                    Price = item.Price
+                })
+            .ToList()
+    };
+}
 
-        return new OrderResponseDto
+   public async Task<IEnumerable<OrderResponseDto>>
+    GetOrdersAsync(int userId)
+{
+    var orders =
+        await _orderRepository
+            .GetUserOrdersAsync(userId);
+
+    return orders.Select(order =>
+        new OrderResponseDto
         {
             Id = order.Id,
-
             TotalAmount = order.TotalAmount,
-
             Status = order.Status,
-
-            DeliveredAt = order.DeliveredAt,
-
-            RefundRequested = order.RefundRequested,
-
             CreatedDate = order.CreatedDate,
+            DeliveredAt = order.DeliveredAt,
+            RefundRequested = order.RefundRequested,
+            DeliveryAgentId = order.DeliveryAgentId,
+            DeliveryAgentName = order.DeliveryAgent?.Name,
 
             Items = order.OrderItems
                 .Select(item =>
                     new OrderItemResponseDto
                     {
-                        ProductName =
-                            item.Product.Name,
-
-                        ImageUrl =
-                            item.Product.ImageUrl,
-
-                        Quantity =
-                            item.Quantity,
-
-                        Price =
-                            item.Price
+                        ProductName = item.Product.Name,
+                        ImageUrl = item.Product.ImageUrl,
+                        Quantity = item.Quantity,
+                        Price = item.Price
                     })
                 .ToList()
-        };
-    }
+        });
+}
 
     public async Task<IEnumerable<OrderResponseDto>>
         GetAllOrdersAsync()
@@ -262,6 +280,10 @@ public class OrderService : IOrderService
                 DeliveredAt = order.DeliveredAt,
 
                 RefundRequested = order.RefundRequested,
+
+                DeliveryAgentId = order.DeliveryAgentId,
+
+                DeliveryAgentName = order.DeliveryAgent?.Name,
 
                 Items = order.OrderItems
                     .Select(item =>
@@ -463,5 +485,83 @@ public class OrderService : IOrderService
         _orderRepository.Update(order);
 
         await _orderRepository.SaveChangesAsync();
+    }
+
+    public async Task AssignDeliveryAgentAsync(
+    int orderId,
+    int deliveryAgentId)
+    {
+        var deliveryAgent =
+            await _userRepository.GetByIdAsync(
+                deliveryAgentId);
+
+        if (deliveryAgent == null)
+        {
+            throw new Exception(
+                "Delivery agent not found");
+        }
+
+        if (deliveryAgent.Role != Roles.DeliveryAgent)
+        {
+            throw new Exception(
+                "Selected user is not a delivery agent");
+        }
+
+        await _orderRepository.AssignDeliveryAgentAsync(
+            orderId,
+            deliveryAgentId);
+
+        await _orderRepository.SaveChangesAsync();
+    }
+
+    public async Task<IEnumerable<OrderResponseDto>>
+        GetAssignedOrdersAsync(
+            int deliveryAgentId)
+    {
+        var orders =
+            await _orderRepository
+                .GetAssignedOrdersAsync(
+                    deliveryAgentId);
+
+        return orders.Select(order =>
+            new OrderResponseDto
+            {
+                Id = order.Id,
+
+                TotalAmount = order.TotalAmount,
+
+                Status = order.Status,
+
+                CreatedDate = order.CreatedDate,
+
+                DeliveredAt = order.DeliveredAt,
+
+                RefundRequested =
+                    order.RefundRequested,
+
+                DeliveryAgentId =
+                    order.DeliveryAgentId,
+
+                DeliveryAgentName =
+                    order.DeliveryAgent?.Name,
+
+                Items = order.OrderItems
+                    .Select(item =>
+                        new OrderItemResponseDto
+                        {
+                            ProductName =
+                                item.Product.Name,
+
+                            ImageUrl =
+                                item.Product.ImageUrl,
+
+                            Quantity =
+                                item.Quantity,
+
+                            Price =
+                                item.Price
+                        })
+                    .ToList()
+            });
     }
 }

@@ -6,4 +6,5 @@ export interface CartItem {
   price: number;
   quantity: number;
   subTotal: number;
+  stock: number;
 }

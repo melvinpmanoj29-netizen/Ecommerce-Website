@@ -1,6 +1,7 @@
 using Ecommerce.API.DTOs.Responses;
 using Ecommerce.API.Repositories.Interfaces;
-using Ecommerce.API.Services.Interfaces;
+using Ecommerce.API.Services.Interfaces;                                                                    
+using Ecommerce.API.Constants;
 
 namespace Ecommerce.API.Services.Implementations;
 
@@ -67,5 +68,21 @@ public class UserService : IUserService
 
         await _userRepository
             .SaveChangesAsync();
+    }
+
+    public async Task<IEnumerable<UserResponseDto>>
+    GetDeliveryAgentsAsync()
+    {
+        var users = await _userRepository.GetAllAsync();
+
+        return users
+            .Where(x => x.Role == Roles.DeliveryAgent)
+            .Select(x => new UserResponseDto
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Email = x.Email,
+                Role = x.Role
+            });
     }
 }
