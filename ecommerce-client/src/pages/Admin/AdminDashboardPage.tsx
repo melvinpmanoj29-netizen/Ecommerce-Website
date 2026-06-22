@@ -6,6 +6,7 @@ import { getAnalytics } from "../../services/analyticsService";
 import { getProducts } from "../../services/productService";
 import { getCategories } from "../../services/categoryService";
 import { getAllOrders } from "../../services/adminOrderService";
+import { getEmergencyDeliveries } from "../../services/adminEmergencyService";
 import { FaBoxes, FaTags, FaShoppingBag, FaUsers, FaArrowRight, FaChartLine, FaChartBar } from "react-icons/fa";
 
 
@@ -14,6 +15,7 @@ function AdminDashboardPage() {
   const [categoryCount, setCategoryCount] = useState(0);
   const [orderCount, setOrderCount] = useState(0);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [pendingEmergencyCount, setPendingEmergencyCount] = useState(0);
 
     useEffect(() => {
     loadStats();
@@ -25,6 +27,14 @@ function AdminDashboardPage() {
       const products = await getProducts();
       const categories = await getCategories();
       const orders = await getAllOrders();
+      
+      try {
+        const emergencyReqs = await getEmergencyDeliveries();
+        const pendingCount = emergencyReqs.filter((r: any) => !r.isApproved).length;
+        setPendingEmergencyCount(pendingCount);
+      } catch (err) {
+        console.error("Failed to load emergency delivery requests count", err);
+      }
 
       setProductCount(products.length);
       setCategoryCount(categories.length);
@@ -94,6 +104,24 @@ console.log("Last alert:", localStorage.getItem("lastLowStockAlert"));
             <p className="text-xs text-theme-muted mt-0.5">Manage stock, categories, orders, and user privileges</p>
           </div>
         </div>
+
+        {pendingEmergencyCount > 0 && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-md flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 shadow-sm animate-pulse">
+            <div className="flex items-center gap-3 text-red-700 dark:text-red-400">
+              <span className="text-xl">🚨</span>
+              <div>
+                <h4 className="text-sm font-bold">High-Priority Alert</h4>
+                <p className="text-xs mt-0.5 font-medium">There {pendingEmergencyCount === 1 ? "is" : "are"} {pendingEmergencyCount} pending emergency delivery OTP override request{pendingEmergencyCount === 1 ? "" : "s"} waiting for approval.</p>
+              </div>
+            </div>
+            <Link
+              to="/admin/emergency-deliveries"
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded shadow-sm text-center shrink-0 transition-colors"
+            >
+              Review Requests
+            </Link>
+          </div>
+        )}
 
         {/* Info widgets row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -221,6 +249,27 @@ console.log("Last alert:", localStorage.getItem("lastLowStockAlert"));
                 <div>
                   <h3 className="text-sm font-bold text-theme-primary">Manage Orders</h3>
                   <p className="text-[11px] text-theme-muted mt-0.5">Approve, ship, or process orders</p>
+                </div>
+              </div>
+              <FaArrowRight size={12} className="text-theme-muted group-hover:text-[#2874F0] group-hover:translate-x-1.5 transition-all" />
+            </Link>
+
+            <Link
+              to="/admin/emergency-deliveries"
+              className="group flex items-center justify-between p-4 bg-theme-card border border-theme rounded-md shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-red-100 dark:bg-slate-800 text-red-600 rounded-full flex items-center justify-center text-sm relative">
+                  <span>🚨</span>
+                  {pendingEmergencyCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-bold border border-white animate-bounce">
+                      {pendingEmergencyCount}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-theme-primary">Emergency Deliveries</h3>
+                  <p className="text-[11px] text-theme-muted mt-0.5">Approve emergency OTP verification overrides</p>
                 </div>
               </div>
               <FaArrowRight size={12} className="text-theme-muted group-hover:text-[#2874F0] group-hover:translate-x-1.5 transition-all" />

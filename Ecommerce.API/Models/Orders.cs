@@ -27,4 +27,20 @@ public class Order
     public bool RefundRequested { get; set; }
 
     public decimal? RefundAmount { get; set; }
+
+    public string? DeliveryOtp { get; set; }
+
+    public DateTime? DeliveryOtpExpiresAt { get; set; }
+
+    public int DeliveryOtpAttempts { get; set; }
+
+    public DateTime? DeliveryOtpRequestedAt { get; set; }
+
+    public bool EmergencyOtpRequested { get; set; }
+
+    public bool EmergencyOtpApproved { get; set; }
+
+    public DateTime? EmergencyOtpRequestedAt { get; set; }
+
+    public string? EmergencyOtpReason { get; set; }
 }

@@ -50,26 +50,6 @@ function OrdersPage() {
     return expiryDate > new Date();
   };
 
-  const handleCancelOrder = async () => {
-    if (!selectedOrderId) return;
-
-    try {
-      await cancelOrder(selectedOrderId);
-
-      toast.success("Order cancelled successfully");
-
-      loadOrders();
-    } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message ||
-        "Failed to cancel order"
-      );
-    } finally {
-      setShowCancelModal(false);
-      setSelectedOrderId(null);
-    }
-  };
-
   const handleRequestReturn = async (orderId: number) => {
     if (
       !window.confirm(

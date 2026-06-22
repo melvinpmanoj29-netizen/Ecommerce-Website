@@ -21,4 +21,6 @@ public static class OrderStatus
     public const string ReturnRejected = "ReturnRejected";
 
     public const string Refunded = "Refunded";
+
+    public const string DeliveryVerificationPending = "DeliveryVerificationPending";
 }

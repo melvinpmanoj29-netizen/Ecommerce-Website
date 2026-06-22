@@ -362,6 +362,15 @@ public class OrderService : IOrderService
                 OrderStatus.OutForDelivery,
                 new()
                 {
+                    OrderStatus.DeliveryVerificationPending
+                }
+            },
+
+            {
+                OrderStatus.DeliveryVerificationPending,
+                new()
+                {
+                    OrderStatus.DeliveryVerificationPending,
                     OrderStatus.Delivered
                 }
             },
@@ -563,5 +572,292 @@ public class OrderService : IOrderService
                         })
                     .ToList()
             });
+    }
+
+    public async Task StartDeliveryAsync(int orderId, int deliveryAgentId)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order == null)
+        {
+            throw new Exception("Order not found");
+        }
+
+        if (order.DeliveryAgentId != deliveryAgentId)
+        {
+            throw new Exception("Unauthorized: You are not the assigned delivery agent for this order");
+        }
+
+        if (order.Status != OrderStatus.Shipped)
+        {
+            throw new Exception("Order is not in Shipped status");
+        }
+
+        order.Status = OrderStatus.OutForDelivery;
+        _orderRepository.Update(order);
+        await _orderRepository.SaveChangesAsync();
+    }
+
+    public async Task RequestDeliveryOtpAsync(int orderId, int deliveryAgentId)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order == null)
+        {
+            throw new Exception("Order not found");
+        }
+
+        if (order.DeliveryAgentId != deliveryAgentId)
+        {
+            throw new Exception("Unauthorized: You are not the assigned delivery agent for this order");
+        }
+
+        if (order.Status != OrderStatus.OutForDelivery && order.Status != OrderStatus.DeliveryVerificationPending)
+        {
+            throw new Exception("Order must be OutForDelivery or DeliveryVerificationPending to request an OTP");
+        }
+
+        // Generate a 6-digit random code
+        var random = new Random();
+        var otp = random.Next(100000, 999999).ToString();
+
+        order.DeliveryOtp = otp;
+        order.DeliveryOtpExpiresAt = DateTime.UtcNow.AddMinutes(10);
+        order.DeliveryOtpAttempts = 0;
+        order.DeliveryOtpRequestedAt = DateTime.UtcNow;
+        order.Status = OrderStatus.DeliveryVerificationPending;
+
+        _orderRepository.Update(order);
+        await _orderRepository.SaveChangesAsync();
+
+        var customer = await _userRepository.GetByIdAsync(order.UserId);
+        if (customer != null && !string.IsNullOrEmpty(customer.Email))
+        {
+            try
+            {
+                var emailHtml = $"""
+                    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #e1e1e1; border-radius: 8px; overflow: hidden;">
+                        <div style="background-color: #000; padding: 25px; text-align: center;">
+                            <h1 style="color: #fff; margin: 0; font-size: 24px; letter-spacing: 2px;">ME10XLUXE</h1>
+                        </div>
+
+                        <div style="padding: 30px; background-color: #ffffff; text-align: center;">
+                            <h2 style="color: #111; margin-top: 0; font-weight: 600;">Delivery Verification Code</h2>
+
+                            <p style="font-size: 16px; color: #555; line-height: 1.5; text-align: left;">
+                                Hello {customer.Name},
+                            </p>
+
+                            <p style="font-size: 16px; color: #555; line-height: 1.5; text-align: left;">
+                                Your order <strong>#{order.Id}</strong> is ready for delivery. Please provide the following One-Time Password (OTP) to the delivery agent to confirm successful delivery:
+                            </p>
+
+                            <div style="background-color: #f8f8f8; padding: 20px; border: 1px dashed #000; margin: 30px auto; border-radius: 8px; display: inline-block; width: 220px;">
+                                <span style="font-size: 32px; font-weight: 700; letter-spacing: 5px; color: #000;">{otp}</span>
+                            </div>
+
+                            <p style="font-size: 14px; color: #777; line-height: 1.5; margin-top: 20px; text-align: left;">
+                                <strong>Important Security Note:</strong> This OTP is valid for 10 minutes. Only share this OTP with the delivery agent once you have received the items.
+                            </p>
+
+                            <p style="margin-top: 40px; font-size: 14px; color: #999; border-top: 1px solid #eee; padding-top: 20px;">
+                                Thank you for shopping with ME10XLUXE.
+                            </p>
+                        </div>
+                    </div>
+                    """;
+
+                await _emailService.SendEmailAsync(
+                    customer.Email,
+                    $"Delivery Verification Code for Order #{order.Id}",
+                    emailHtml);
+            }
+            catch (Exception emailEx)
+            {
+                Console.WriteLine($"Failed to send OTP verification email to {customer.Email}: {emailEx.Message}");
+            }
+        }
+    }
+
+    public async Task VerifyDeliveryOtpAsync(int orderId, int deliveryAgentId, string otp)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order == null)
+        {
+            throw new Exception("Order not found");
+        }
+
+        if (order.DeliveryAgentId != deliveryAgentId)
+        {
+            throw new Exception("Unauthorized: You are not the assigned delivery agent for this order");
+        }
+
+        if (order.Status != OrderStatus.DeliveryVerificationPending)
+        {
+            throw new Exception("Order is not in Verification Pending status");
+        }
+
+        if (order.DeliveryOtpAttempts >= 5)
+        {
+            throw new Exception("Maximum OTP verification attempts (5) exceeded. Please request a new OTP.");
+        }
+
+        if (order.DeliveryOtpExpiresAt == null || DateTime.UtcNow > order.DeliveryOtpExpiresAt.Value)
+        {
+            throw new Exception("OTP has expired. Please request a new OTP.");
+        }
+
+        order.DeliveryOtpAttempts++;
+
+        if (order.DeliveryOtp != otp)
+        {
+            _orderRepository.Update(order);
+            await _orderRepository.SaveChangesAsync();
+            throw new Exception($"Invalid OTP. {5 - order.DeliveryOtpAttempts} attempts remaining.");
+        }
+
+        // OTP is correct! Complete the delivery
+        order.Status = OrderStatus.Delivered;
+        order.DeliveredAt = DateTime.UtcNow;
+        order.DeliveryOtp = null;
+        order.DeliveryOtpExpiresAt = null;
+        order.DeliveryOtpAttempts = 0;
+        order.DeliveryOtpRequestedAt = null;
+
+        _orderRepository.Update(order);
+        await _orderRepository.SaveChangesAsync();
+    }
+
+    public async Task RequestEmergencyOtpAsync(int orderId, int deliveryAgentId, string reason)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order == null)
+        {
+            throw new Exception("Order not found");
+        }
+
+        if (order.DeliveryAgentId != deliveryAgentId)
+        {
+            throw new Exception("Unauthorized: You are not the assigned delivery agent for this order");
+        }
+
+        if (order.Status != OrderStatus.DeliveryVerificationPending)
+        {
+            throw new Exception("Order must be in DeliveryVerificationPending status to request an emergency OTP");
+        }
+
+        order.EmergencyOtpRequested = true;
+        order.EmergencyOtpRequestedAt = DateTime.UtcNow;
+        order.EmergencyOtpApproved = false;
+        order.EmergencyOtpReason = reason;
+
+        _orderRepository.Update(order);
+        await _orderRepository.SaveChangesAsync();
+    }
+
+    public async Task ApproveEmergencyOtpAsync(int orderId)
+    {
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order == null)
+        {
+            throw new Exception("Order not found");
+        }
+
+        if (!order.EmergencyOtpRequested)
+        {
+            throw new Exception("No emergency OTP request found for this order");
+        }
+
+        order.EmergencyOtpApproved = true;
+
+        // Generate a new regular OTP code
+        var random = new Random();
+        var otp = random.Next(100000, 999999).ToString();
+
+        order.DeliveryOtp = otp;
+        order.DeliveryOtpExpiresAt = DateTime.UtcNow.AddMinutes(10);
+        order.DeliveryOtpAttempts = 0;
+        order.DeliveryOtpRequestedAt = DateTime.UtcNow;
+
+        _orderRepository.Update(order);
+        await _orderRepository.SaveChangesAsync();
+
+        var customer = await _userRepository.GetByIdAsync(order.UserId);
+        if (customer != null && !string.IsNullOrEmpty(customer.Email))
+        {
+            try
+            {
+                var emailHtml = $"""
+                    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #e1e1e1; border-radius: 8px; overflow: hidden;">
+                        <div style="background-color: #f44336; padding: 25px; text-align: center;">
+                            <h1 style="color: #fff; margin: 0; font-size: 24px; letter-spacing: 2px;">ME10XLUXE - EMERGENCY CODE</h1>
+                        </div>
+
+                        <div style="padding: 30px; background-color: #ffffff; text-align: center;">
+                            <h2 style="color: #111; margin-top: 0; font-weight: 600;">Emergency Delivery Verification Code</h2>
+
+                            <p style="font-size: 16px; color: #555; line-height: 1.5; text-align: left;">
+                                Hello {customer.Name},
+                            </p>
+
+                            <p style="font-size: 16px; color: #555; line-height: 1.5; text-align: left;">
+                                An emergency override was requested for your order <strong>#{order.Id}</strong>. A new Delivery Verification OTP has been approved by our administrators. Please provide this code to the delivery agent to confirm delivery:
+                            </p>
+
+                            <div style="background-color: #fff5f5; padding: 20px; border: 1px dashed #f44336; margin: 30px auto; border-radius: 8px; display: inline-block; width: 220px;">
+                                <span style="font-size: 32px; font-weight: 700; letter-spacing: 5px; color: #f44336;">{otp}</span>
+                            </div>
+
+                            <p style="font-size: 14px; color: #777; line-height: 1.5; margin-top: 20px; text-align: left;">
+                                <strong>Important Security Note:</strong> This OTP is valid for 10 minutes. Only share this OTP with the delivery agent once you have received the items.
+                            </p>
+
+                            <p style="margin-top: 40px; font-size: 14px; color: #999; border-top: 1px solid #eee; padding-top: 20px;">
+                                Thank you for shopping with ME10XLUXE.
+                            </p>
+                        </div>
+                    </div>
+                    """;
+
+                await _emailService.SendEmailAsync(
+                    customer.Email,
+                    $"Emergency Delivery Verification Code for Order #{order.Id}",
+                    emailHtml);
+            }
+            catch (Exception emailEx)
+            {
+                Console.WriteLine($"Failed to send emergency OTP verification email to {customer.Email}: {emailEx.Message}");
+            }
+        }
+    }
+
+    public async Task<IEnumerable<Ecommerce.API.DTOs.Responses.EmergencyDeliveryResponseDto>> GetEmergencyDeliveriesAsync()
+    {
+        var orders = await _orderRepository.GetAllOrdersAsync();
+        
+        // Filter orders where EmergencyOtpRequested is true
+        var emergencyOrders = orders
+            .Where(o => o.EmergencyOtpRequested)
+            .OrderByDescending(o => o.EmergencyOtpRequestedAt ?? o.CreatedDate)
+            .ToList();
+
+        var dtos = new List<Ecommerce.API.DTOs.Responses.EmergencyDeliveryResponseDto>();
+
+        foreach (var order in emergencyOrders)
+        {
+            var customer = await _userRepository.GetByIdAsync(order.UserId);
+            
+            dtos.Add(new Ecommerce.API.DTOs.Responses.EmergencyDeliveryResponseDto
+            {
+                OrderId = order.Id,
+                CustomerName = customer?.Name ?? "Unknown Customer",
+                CustomerEmail = customer?.Email ?? string.Empty,
+                DeliveryAgentName = order.DeliveryAgent?.Name ?? "Unknown Agent",
+                CurrentStatus = order.Status,
+                RequestTimestamp = order.EmergencyOtpRequestedAt,
+                RequestReason = order.EmergencyOtpReason ?? string.Empty,
+                IsApproved = order.EmergencyOtpApproved
+            });
+        }
+
+        return dtos;
     }
 }

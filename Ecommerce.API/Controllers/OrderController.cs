@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Ecommerce.API.Constants;
+using Ecommerce.API.DTOs.Requests;
 
 namespace Ecommerce.API.Controllers;
 
@@ -183,33 +184,84 @@ public class OrdersController : ControllerBase
         int id,
         string status)
     {
-        var allowedStatuses = new[]
-        {
-            "Shipped",
-            "OutForDelivery",
-            "Delivered"
-        };
-
-        if (!allowedStatuses.Contains(status))
-        {
-            return BadRequest(
-                new ApiResponse<string>
-                {
-                    Success = false,
-                    Message = "Invalid delivery status"
-                });
-        }
-
-        await _orderService.UpdateOrderStatusAsync(
-            id,
-            status);
-
-        return Ok(
+        return BadRequest(
             new ApiResponse<string>
             {
-                Success = true,
-                Message = "Delivery status updated"
+                Success = false,
+                Message = "Manual status updates are no longer permitted. Please use the secure OTP verification flow."
             });
+    }
+
+    [Authorize(Roles = Roles.DeliveryAgent)]
+    [HttpPost("{id}/start-delivery")]
+    public async Task<IActionResult> StartDelivery(int id)
+    {
+        try
+        {
+            var deliveryAgentId = GetUserId();
+            await _orderService.StartDeliveryAsync(id, deliveryAgentId);
+            return Ok(new ApiResponse<string>
+            {
+                Success = true,
+                Message = "Delivery started successfully"
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Success = false,
+                Message = ex.Message
+            });
+        }
+    }
+
+    [Authorize(Roles = Roles.DeliveryAgent)]
+    [HttpPost("{id}/request-delivery-otp")]
+    public async Task<IActionResult> RequestDeliveryOtp(int id)
+    {
+        try
+        {
+            var deliveryAgentId = GetUserId();
+            await _orderService.RequestDeliveryOtpAsync(id, deliveryAgentId);
+            return Ok(new ApiResponse<string>
+            {
+                Success = true,
+                Message = "OTP sent to customer email successfully"
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Success = false,
+                Message = ex.Message
+            });
+        }
+    }
+
+    [Authorize(Roles = Roles.DeliveryAgent)]
+    [HttpPost("{id}/verify-delivery-otp")]
+    public async Task<IActionResult> VerifyDeliveryOtp(int id, [FromBody] VerifyDeliveryOtpDto dto)
+    {
+        try
+        {
+            var deliveryAgentId = GetUserId();
+            await _orderService.VerifyDeliveryOtpAsync(id, deliveryAgentId, dto.Otp);
+            return Ok(new ApiResponse<string>
+            {
+                Success = true,
+                Message = "OTP verified successfully. Order delivered."
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Success = false,
+                Message = ex.Message
+            });
+        }
     }
 
     [HttpPost("{id}/cancel")]
@@ -240,5 +292,76 @@ public class OrdersController : ControllerBase
                 Success = true,
                 Message = "Return and refund requested successfully"
             });
+    }
+
+    [Authorize(Roles = Roles.DeliveryAgent)]
+    [HttpPost("{id}/request-emergency-otp")]
+    public async Task<IActionResult> RequestEmergencyOtp(int id, [FromBody] RequestEmergencyOtpDto dto)
+    {
+        try
+        {
+            var deliveryAgentId = GetUserId();
+            await _orderService.RequestEmergencyOtpAsync(id, deliveryAgentId, dto.Reason);
+            return Ok(new ApiResponse<string>
+            {
+                Success = true,
+                Message = "Emergency OTP request submitted to administrators"
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Success = false,
+                Message = ex.Message
+            });
+        }
+    }
+
+    [Authorize(Roles = Roles.Admin)]
+    [HttpPost("{id}/approve-emergency-otp")]
+    public async Task<IActionResult> ApproveEmergencyOtp(int id)
+    {
+        try
+        {
+            await _orderService.ApproveEmergencyOtpAsync(id);
+            return Ok(new ApiResponse<string>
+            {
+                Success = true,
+                Message = "Emergency OTP approved and sent to customer email"
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Success = false,
+                Message = ex.Message
+            });
+        }
+    }
+
+    [Authorize(Roles = Roles.Admin)]
+    [HttpGet("~/api/admin/emergency-deliveries")]
+    public async Task<IActionResult> GetEmergencyDeliveries()
+    {
+        try
+        {
+            var requests = await _orderService.GetEmergencyDeliveriesAsync();
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Emergency delivery requests fetched successfully",
+                Data = requests
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new ApiResponse<string>
+            {
+                Success = false,
+                Message = ex.Message
+            });
+        }
     }
 }   

@@ -4,6 +4,7 @@ using Ecommerce.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Ecommerce.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260622133500_AddDeliveryOtpFields")]
+    partial class AddDeliveryOtpFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -96,18 +99,6 @@ namespace Ecommerce.API.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("DeliveryOtpRequestedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("EmergencyOtpApproved")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("EmergencyOtpReason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("EmergencyOtpRequested")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("EmergencyOtpRequestedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<decimal?>("RefundAmount")

@@ -21,4 +21,16 @@ public interface IOrderService
     Task AssignDeliveryAgentAsync(int orderId,int deliveryAgentId);
 
     Task<IEnumerable<OrderResponseDto>> GetAssignedOrdersAsync(int deliveryAgentId);
+
+    Task StartDeliveryAsync(int orderId, int deliveryAgentId);
+
+    Task RequestDeliveryOtpAsync(int orderId, int deliveryAgentId);
+
+    Task VerifyDeliveryOtpAsync(int orderId, int deliveryAgentId, string otp);
+
+    Task RequestEmergencyOtpAsync(int orderId, int deliveryAgentId, string reason);
+
+    Task ApproveEmergencyOtpAsync(int orderId);
+
+    Task<IEnumerable<Ecommerce.API.DTOs.Responses.EmergencyDeliveryResponseDto>> GetEmergencyDeliveriesAsync();
 }

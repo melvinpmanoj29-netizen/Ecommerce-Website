@@ -22,6 +22,7 @@ import ForgotPasswordPage from "../pages/Auth/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/Auth/ResetPasswordPage";
 import AnalyticsPage from "../pages/Admin/AnalyticsPage";
 import DeliveryDashboard from "../pages/DeliveryDashboard";
+import AdminEmergencyDeliveriesPage from "../pages/Admin/AdminEmergencyDeliveriesPage";
 
 
 function AppRoutes() {
@@ -49,6 +50,7 @@ function AppRoutes() {
       <Route path="/reset-password" element={<ResetPasswordPage />}/>
       <Route path="/admin/analytics" element={<AdminRoute><AnalyticsPage/></AdminRoute>}/>
       <Route path="/delivery" element={<DeliveryDashboard />}/>
+      <Route path="/admin/emergency-deliveries" element={<AdminRoute><AdminEmergencyDeliveriesPage /></AdminRoute>}/>
     </Routes>
   );
 }
