@@ -37,4 +37,4 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ecommerce-client/dist/
-          server-dir: ${{ secrets.FTP_PATH }}
+          server-dir: /wwwroot/
