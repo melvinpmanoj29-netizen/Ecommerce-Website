@@ -4,7 +4,6 @@ import { getCart, updateCart, removeCartItem } from "../../services/cartService"
 import toast from "react-hot-toast";
 import type { CartItem } from "../../types/CartItem";
 import { Link } from "react-router-dom";
-import { checkout } from "../../services/paymentService";
 import Button from "../../components/buttons/Button";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { FaTrash, FaPlus, FaMinus, FaLock } from "react-icons/fa";
@@ -21,17 +20,6 @@ function CartPage() {
     loadCart();
   }, []);
 
-  const handleCheckout = async () => {
-    try {
-      sessionStorage.removeItem("paymentCompleted");
-      sessionStorage.removeItem("paymentProcessing");
-      const url = await checkout();
-      window.location.href = url;
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to start checkout process");
-    }
-  };
 
   const increaseQuantity = async (itemId: number,currentQty: number,stock: number) => {
     try {

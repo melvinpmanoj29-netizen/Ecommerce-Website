@@ -3,7 +3,6 @@ import {
   FaCheckCircle,
   FaBox,
   FaTruck,
-  FaMapMarkerAlt,
   FaMotorcycle,
   FaTimes,
   FaInfoCircle,

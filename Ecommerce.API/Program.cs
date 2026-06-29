@@ -217,16 +217,22 @@ builder.Services.AddCors(options =>
         "ReactApp",
         policy =>
         {
-            policy
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowAnyOrigin();
-        });
+            policy.WithOrigins(
+                "http://localhost:5174",
+                "https://localhost:5174",
+                "https://me10xluxe.kaliwebworkspace.in"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+});
 });
 
 
 
 var app = builder.Build();
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 var stripeSettings =
     builder.Configuration
@@ -257,5 +263,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapFallbackToFile("index.html");
+
 
 app.Run();
