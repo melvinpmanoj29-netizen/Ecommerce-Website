@@ -523,70 +523,6 @@ public class OrderService : IOrderService
         await _orderRepository.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<OrderResponseDto>>
-        GetAssignedOrdersAsync(
-            int deliveryAgentId)
-    {
-        var orders =
-            await _orderRepository
-                .GetAssignedOrdersAsync(
-                    deliveryAgentId);
-
-        return orders.Select(order =>
-            new OrderResponseDto
-            {
-                Id = order.Id,
-
-                TotalAmount = order.TotalAmount,
-
-                Status = order.Status,
-
-                CreatedDate = order.CreatedDate,
-
-                DeliveredAt = order.DeliveredAt,
-
-                RefundRequested =
-                    order.RefundRequested,
-
-                DeliveryAgentId =
-                    order.DeliveryAgentId,
-
-                DeliveryAgentName =
-                    order.DeliveryAgent?.Name,
-
-                ShippingAddress = order.ShippingAddress == null ? null :
-                    new ShippingAddressResponseDto
-                    {
-                        FullName = order.ShippingAddress.FullName,
-                        PhoneNumber = order.ShippingAddress.PhoneNumber,
-                        AddressLine1 = order.ShippingAddress.AddressLine1,
-                        AddressLine2 = order.ShippingAddress.AddressLine2,
-                        City = order.ShippingAddress.City,
-                        State = order.ShippingAddress.State,
-                        PostalCode = order.ShippingAddress.PostalCode,
-                        DeliveryNotes = order.ShippingAddress.DeliveryNotes,
-                    },
-
-                Items = order.OrderItems
-                    .Select(item =>
-                        new OrderItemResponseDto
-                        {
-                            ProductName =
-                                item.Product.Name,
-
-                            ImageUrl =
-                                item.Product.ImageUrl,
-
-                            Quantity =
-                                item.Quantity,
-
-                            Price =
-                                item.Price
-                        })
-                    .ToList()
-            });
-    }
-
     public async Task StartDeliveryAsync(int orderId, int deliveryAgentId)
     {
         var order = await _orderRepository.GetByIdAsync(orderId);
@@ -636,6 +572,7 @@ public class OrderService : IOrderService
         order.DeliveryOtpExpiresAt = DateTime.UtcNow.AddMinutes(10);
         order.DeliveryOtpAttempts = 0;
         order.DeliveryOtpRequestedAt = DateTime.UtcNow;
+
         order.Status = OrderStatus.DeliveryVerificationPending;
 
         _orderRepository.Update(order);
@@ -688,6 +625,51 @@ public class OrderService : IOrderService
                 Console.WriteLine($"Failed to send OTP verification email to {customer.Email}: {emailEx.Message}");
             }
         }
+    }
+
+    public async Task<IEnumerable<OrderResponseDto>> GetAssignedOrdersAsync(int deliveryAgentId)
+    {
+        var orders =
+            await _orderRepository
+                .GetAssignedOrdersAsync(
+                    deliveryAgentId);
+
+        return orders.Select(order =>
+            new OrderResponseDto
+            {
+                Id = order.Id,
+                TotalAmount = order.TotalAmount,
+                Status = order.Status,
+                CreatedDate = order.CreatedDate,
+                DeliveredAt = order.DeliveredAt,
+                RefundRequested = order.RefundRequested,
+                DeliveryAgentId = order.DeliveryAgentId,
+                DeliveryAgentName = order.DeliveryAgent?.Name,
+
+                ShippingAddress = order.ShippingAddress == null ? null :
+                    new ShippingAddressResponseDto
+                    {
+                        FullName = order.ShippingAddress.FullName,
+                        PhoneNumber = order.ShippingAddress.PhoneNumber,
+                        AddressLine1 = order.ShippingAddress.AddressLine1,
+                        AddressLine2 = order.ShippingAddress.AddressLine2,
+                        City = order.ShippingAddress.City,
+                        State = order.ShippingAddress.State,
+                        PostalCode = order.ShippingAddress.PostalCode,
+                        DeliveryNotes = order.ShippingAddress.DeliveryNotes,
+                    },
+
+                Items = order.OrderItems
+                    .Select(item =>
+                        new OrderItemResponseDto
+                        {
+                            ProductName = item.Product.Name,
+                            ImageUrl = item.Product.ImageUrl,
+                            Quantity = item.Quantity,
+                            Price = item.Price
+                        })
+                    .ToList()
+            });
     }
 
     public async Task VerifyDeliveryOtpAsync(int orderId, int deliveryAgentId, string otp)

@@ -89,5 +89,8 @@ public class ApplicationDbContext : DbContext
             .HasForeignKey<ShippingAddress>(
                 x => x.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ShippingAddress>()
+            .ToTable("ShippingAddresses", schema: "kaliweb1_Clg_Jyothi_04");
     }
 }
