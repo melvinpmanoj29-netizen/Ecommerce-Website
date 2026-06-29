@@ -1,0 +1,29 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'ecommerce-client/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        working-directory: ecommerce-client
+        run: npm install
+
+      - name: Build React App
+        working-directory: ecommerce-client
+        run: npm run build
