@@ -78,9 +78,9 @@ public async Task HandleWebhookAsync(
             {
                 Mode = "payment",
 
-                SuccessUrl ="http://localhost:5173/payment-success?session_id={CHECKOUT_SESSION_ID}",
+                SuccessUrl ="https://me10xluxe.kaliwebworkspace.in/payment-success?session_id={CHECKOUT_SESSION_ID}",
 
-                CancelUrl ="http://localhost:5173/payment-cancelled",
+                CancelUrl ="https://me10xluxe.kaliwebworkspace.in/cart",
 
                 LineItems =
                     lineItems,
