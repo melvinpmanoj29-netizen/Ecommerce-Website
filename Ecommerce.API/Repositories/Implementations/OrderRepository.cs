@@ -79,6 +79,8 @@ public class OrderRepository
                 .Include(x => x.DeliveryAgent)
                 .Include(x => x.OrderItems)
                 .ThenInclude(x => x.Product)
+                .Include(x => x.ShippingAddress)
+                .Include(x => x.User)
                 .Where(x => x.DeliveryAgentId == deliveryAgentId)
                 .ToListAsync();
         }

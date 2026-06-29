@@ -19,5 +19,7 @@ public class OrderResponseDto
 
     public string? DeliveryAgentName { get; set; }
 
+    public ShippingAddressResponseDto? ShippingAddress { get; set; }
+
     public List<OrderItemResponseDto> Items { get; set; } = new();
 }

@@ -23,6 +23,7 @@ import ResetPasswordPage from "../pages/Auth/ResetPasswordPage";
 import AnalyticsPage from "../pages/Admin/AnalyticsPage";
 import DeliveryDashboard from "../pages/DeliveryDashboard";
 import AdminEmergencyDeliveriesPage from "../pages/Admin/AdminEmergencyDeliveriesPage";
+import CheckoutPage from "../pages/Checkout/CheckoutPage";
 
 
 function AppRoutes() {
@@ -51,6 +52,7 @@ function AppRoutes() {
       <Route path="/admin/analytics" element={<AdminRoute><AnalyticsPage/></AdminRoute>}/>
       <Route path="/delivery" element={<DeliveryDashboard />}/>
       <Route path="/admin/emergency-deliveries" element={<AdminRoute><AdminEmergencyDeliveriesPage /></AdminRoute>}/>
+      <Route path="/checkout" element={<CheckoutPage />}/>
     </Routes>
   );
 }

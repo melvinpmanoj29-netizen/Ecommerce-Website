@@ -8,10 +8,14 @@ import { checkout } from "../../services/paymentService";
 import Button from "../../components/buttons/Button";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { FaTrash, FaPlus, FaMinus, FaLock } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
+
 
 function CartPage() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadCart();
@@ -228,11 +232,11 @@ function CartPage() {
 
             {/* Checkout CTA */}
             <button
-              onClick={handleCheckout}
+              onClick={() => navigate("/checkout")}
               className="w-full bg-[#fb641b] hover:bg-[#e04f0b] text-white font-bold py-3.5 px-4 rounded-sm flex items-center justify-center gap-2 text-sm uppercase tracking-wide cursor-pointer transition-colors shadow-sm mt-5 active:scale-[0.99]"
             >
               <FaLock size={12} />
-              <span>Place Order</span>
+              <span>CheckOut</span>
             </button>
             
             <div className="text-[10px] text-theme-muted mt-3 text-center flex items-center justify-center gap-1 font-semibold">

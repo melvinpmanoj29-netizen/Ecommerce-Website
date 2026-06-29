@@ -5,6 +5,17 @@ export interface OrderItem {
   price: number;
 }
 
+export interface ShippingAddress {
+  fullName: string;
+  phoneNumber: string;
+  addressLine1: string;
+  addressLine2?: string | null;
+  city: string;
+  state: string;
+  postalCode: string;
+  deliveryNotes?: string | null;
+}
+
 export interface Order {
   id: number;
   totalAmount: number;
@@ -13,4 +24,6 @@ export interface Order {
   items: OrderItem[];
   deliveredAt?: string | null;
   refundRequested?: boolean;
+  shippingAddress?: ShippingAddress | null;
+  deliveryAgentName?: string | null;
 }

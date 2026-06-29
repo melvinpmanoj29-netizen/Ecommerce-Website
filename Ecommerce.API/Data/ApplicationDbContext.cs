@@ -22,7 +22,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<Order> Orders => Set<Order>();
 
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+
     public DbSet<Review> Reviews => Set<Review>();
+
+    public DbSet<ShippingAddress> ShippingAddresses
+    => Set<ShippingAddress>();
 
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
@@ -77,5 +81,13 @@ public class ApplicationDbContext : DbContext
             .WithMany()
             .HasForeignKey(x => x.DeliveryAgentId)
             .OnDelete(DeleteBehavior.SetNull);
-            }
+            
+
+        modelBuilder.Entity<Order>()
+            .HasOne(x => x.ShippingAddress)
+            .WithOne(x => x.Order)
+            .HasForeignKey<ShippingAddress>(
+                x => x.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
 }

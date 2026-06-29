@@ -554,6 +554,19 @@ public class OrderService : IOrderService
                 DeliveryAgentName =
                     order.DeliveryAgent?.Name,
 
+                ShippingAddress = order.ShippingAddress == null ? null :
+                    new ShippingAddressResponseDto
+                    {
+                        FullName = order.ShippingAddress.FullName,
+                        PhoneNumber = order.ShippingAddress.PhoneNumber,
+                        AddressLine1 = order.ShippingAddress.AddressLine1,
+                        AddressLine2 = order.ShippingAddress.AddressLine2,
+                        City = order.ShippingAddress.City,
+                        State = order.ShippingAddress.State,
+                        PostalCode = order.ShippingAddress.PostalCode,
+                        DeliveryNotes = order.ShippingAddress.DeliveryNotes,
+                    },
+
                 Items = order.OrderItems
                     .Select(item =>
                         new OrderItemResponseDto

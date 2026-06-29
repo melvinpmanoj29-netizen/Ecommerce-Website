@@ -20,6 +20,8 @@ public class Order
 
     public ICollection<OrderItem> OrderItems{get;set; } = new List<OrderItem>();
 
+    public ShippingAddress? ShippingAddress { get; set; }   
+
     public DateTime? DeliveredAt { get; set; }
 
     public DateTime? ReturnRequestedAt { get; set; }
@@ -43,4 +45,5 @@ public class Order
     public DateTime? EmergencyOtpRequestedAt { get; set; }
 
     public string? EmergencyOtpReason { get; set; }
+
 }

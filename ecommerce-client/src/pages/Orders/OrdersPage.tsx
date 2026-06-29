@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import MainLayout from "../../layouts/MainLayout";
 import { getOrders ,cancelOrder, requestReturn } from "../../services/orderService";
 import type { Order } from "../../types/Order";
-import { FaBoxOpen, FaCalendarAlt, FaReceipt } from "react-icons/fa";
+import { FaBoxOpen, FaCalendarAlt, FaReceipt, FaMapMarkerAlt } from "react-icons/fa";
 import toast from "react-hot-toast";
 import ConfirmModal from "../../components/common/ConfirmModal";
+import OrderTrackingModal from "../../components/common/OrderTrackingModal";
 
 function OrdersPage() {
   const [selectedOrderId, setSelectedOrderId] =
@@ -14,6 +15,7 @@ function OrdersPage() {
     useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [trackingOrder, setTrackingOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     loadOrders();
@@ -205,6 +207,16 @@ function OrdersPage() {
                       <FaReceipt /> Invoice Available
                     </span>
 
+                    {/* Track Order button — shown for all non-cancelled orders */}
+                    {order.status !== "Cancelled" && (
+                      <button
+                        onClick={() => setTrackingOrder(order)}
+                        className="px-3 py-1 text-xs font-semibold rounded-sm bg-[#2874F0] hover:bg-[#1259c7] text-white transition-colors flex items-center gap-1.5"
+                      >
+                        <FaMapMarkerAlt size={10} /> Track Order
+                      </button>
+                    )}
+
                     {canCancel(order.status) && (
                       <button
                       onClick={() =>{
@@ -252,6 +264,14 @@ function OrdersPage() {
           setSelectedOrderId(null);
         }}
       />
+
+      {/* Order Tracking Modal */}
+      {trackingOrder && (
+        <OrderTrackingModal
+          order={trackingOrder}
+          onClose={() => setTrackingOrder(null)}
+        />
+      )}
     </MainLayout>
   );
 }
